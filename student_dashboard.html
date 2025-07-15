@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f7fc;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .hamburger {
+      display: none;
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      background-color: #2f3542;
+      color: white;
+      padding: 10px 12px;
+      border-radius: 5px;
+      z-index: 1101;
+      cursor: pointer;
+    }
+
+    .overlay {
+      display: none;
+    }
+
+    .sidebar {
+      width: 220px;
+      background-color: #2f3542;
+      color: white;
+      padding-top: 30px;
+      flex-shrink: 0;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 20px;
+    }
+
+    .sidebar a {
+      display: block;
+      color: white;
+      padding: 12px 20px;
+      text-decoration: none;
+      font-size: 15px;
+    }
+
+    .sidebar a:hover {
+      background-color: #57606f;
+    }
+
+    .main {
+      flex: 1;
+      padding: 25px;
+      overflow-y: auto;
+    }
+
+    .welcome {
+      font-size: 22px;
+      margin-bottom: 25px;
+      font-weight: 600;
+    }
+
+    .section {
+      margin-bottom: 30px;
+    }
+
+    .section h2 {
+      font-size: 20px;
+      margin-bottom: 15px;
+      color: #2c3e50;
+    }
+
+    table {
+      width: 100%;
+      background-color: white;
+      border-collapse: collapse;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
+
+    .progress-bar {
+      background-color: #2ecc71;
+      height: 20px;
+      border-radius: 10px;
+      width: {{ progress.percent_complete }}%;
+    }
+
+    .progress {
+      width: 100%;
+      background-color: #dcdde1;
+      border-radius: 10px;
+      overflow: hidden;
+      height: 20px;
+      margin: 10px 0;
+    }
+
+    .logout-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #e74c3c;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    ul {
+      list-style: none;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+        overflow-x: hidden;
+      }
+
+      .hamburger {
+        display: block;
+      }
+
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        transform: translateX(-100%);
+        width: 240px;
+        height: 100%;
+        padding-top: 60px;
+        z-index: 1100;
+      }
+
+      .sidebar.active {
+        transform: translateX(0);
+      }
+
+      .overlay.active {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+      }
+
+      .main {
+        padding: 15px;
+      }
+
+      .welcome{
+        margin-left: 50px;
+      }
+
+      .section h2 {
+        font-size: 18px;
+      }
+
+      table, th, td {
+        font-size: 14px;
+      }
+
+      .logout-btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Hamburger Button -->
+  <div class="hamburger" onclick="toggleSidebar()">
+    <i class="fas fa-bars"></i>
+  </div>
+
+  <!-- Overlay -->
+  <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <h2>LMS Panel</h2>
+    <a href="{{ url_for('profile') }}"><i class="fas fa-user"></i> Profile</a>
+    <a href="{{ url_for('quiz') }}"><i class="fas fa-pen"></i> Take Quiz</a>
+    <a href="{{ url_for('quiz_history') }}"><i class="fas fa-chart-line"></i> Quiz History</a>
+    <a href="{{ url_for('browse_courses') }}"><i class="fas fa-book"></i> Courses</a>
+    <a href="{{ url_for('view_assignments') }}"><i class="fas fa-folder-open"></i> Assignments</a>
+    <a href="{{ url_for('view_announcements') }}"><i class="fas fa-bullhorn"></i> Announcements</a>
+    <a href="{{ url_for('ask_doubt') }}"><i class="fas fa-question-circle"></i> Ask a Doubt</a>
+    <a href="{{ url_for('leaderboard') }}"><i class="fas fa-trophy"></i> Leaderboard</a>
+    <a href="{{ url_for('feedback') }}"><i class="fas fa-comment-dots"></i> Give Feedback</a>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+    <div class="welcome">👋 Welcome, {{ user }}</div>
+
+    <!-- Deadlines -->
+    <div class="section">
+      <h2>📌 Upcoming Deadlines</h2>
+      <table>
+        <tr><th>Task</th><th>Due Date</th><th>Status</th></tr>
+        {% for d in deadlines %}
+          <tr><td>{{ d.name }}</td><td>{{ d.due }}</td><td>{{ d.status }}</td></tr>
+        {% else %}
+          <tr><td colspan="3">No upcoming tasks</td></tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <!-- Progress -->
+    <div class="section">
+      <h2>📈 Your Progress</h2>
+      <p>Quizzes Taken: {{ progress.quizzes_taken }} | Average Score: {{ progress.avg_score }}%</p>
+      <div class="progress"><div class="progress-bar"></div></div>
+    </div>
+
+    <!-- XP & Streak -->
+    <div class="section">
+      <h2>💬 XP & Streaks</h2>
+      <p>Level: {{ gamification.level }} | XP: {{ gamification.xp }}/{{ gamification.xp_needed }}</p>
+      <div class="progress">
+        <div class="progress-bar" style="width: {{ gamification.percent_to_next_level }}%;"></div>
+      </div>
+      <p>🔥 Current Streak: {{ gamification.streak_days }} days</p>
+    </div>
+
+    <!-- Badges -->
+    <div class="section">
+      <h2>🏅 Your Badges</h2>
+      <ul>
+        {% for badge in badges %}
+          <li>
+            {% if badge.name == "First Quiz" %}
+              🥇 {{ badge.name }}
+            {% elif badge.name == "80% Club" %}
+              🏆 {{ badge.name }}
+            {% else %}
+              🎖 {{ badge.name }}
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <!-- Logout -->
+    <form method="GET" action="{{ url_for('logout') }}">
+      <button class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </form>
+  </div>
+
+  <!-- Script to toggle sidebar -->
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById("sidebar");
+      const overlay = document.getElementById("overlay");
+      sidebar.classList.toggle("active");
+      overlay.classList.toggle("active");
+    }
+  </script>
+
+</body>
+</html>
