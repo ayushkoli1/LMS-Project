@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quiz Results - Instructor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-4">
+    <h2>Quiz Results</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Background</th>
+                <th>Score</th>
+                <th>Total</th>
+                <th>Percentage</th>
+                <th>Level</th>
+                <th>DateTime</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in records %}
+            <tr>
+                <td>{{ record.Name }}</td>
+                <td>{{ record.Email }}</td>
+                <td>{{ record.Background }}</td>
+                <td>{{ record.Score }}</td>
+                <td>{{ record.Total }}</td>
+                <td>{{ "%.2f"|format(record.Percentage) }}</td>
+                <td>{{ record.Level }}</td>
+                <td>{{ record.DateTime }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{{ url_for('instructor_dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+</div>
+</body>
+</html>

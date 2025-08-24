@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Instructor Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .header {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header a {
+            color: white;
+            text-decoration: none;
+            margin-left: 15px;
+        }
+        .dashboard-title {
+            font-weight: 600;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .course-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .course-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        .btn-course {
+            margin-right: 5px;
+            margin-top: 5px;
+            width: 100%;
+            text-align: left;
+        }
+        .btn-your-course {
+            background-color: #17a2b8;
+            color: white;
+            font-size: 0.85rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+        .sidebar {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            margin-left: 20px;
+            height: fit-content;
+        }
+        .sidebar h5 {
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        .badge-courses {
+            background-color: #17a2b8;
+            color: white;
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 12px;
+            margin-left: 5px;
+        }
+        .btn-quick {
+            width: 100%;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .btn-create-course {
+            background-color: #198754;
+            color: white;
+        }
+        .btn-create-quiz {
+            background-color: #0d6efd;
+            color: white;
+        }
+        .btn-manage-students {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-view-analytics {
+            background-color: #0dcaf0;
+            color: black;
+        }
+        .btn-view-doubts {
+            background-color: #ffc107;
+            color: black;
+            position: relative;
+        }
+        .btn-export-users {
+            background-color: #0d6efd;
+            color: white;
+        }
+        .doubt-badge {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background-color: red;
+            color: white;
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 50%;
+        }
+        .btn-download {
+            width: 100%;
+            margin-bottom: 10px;
+            text-align: center;
+            color: white;
+        }
+        .btn-download-quiz {
+            background-color: #198754;
+        }
+        .btn-download-enrollments {
+            background-color: #0dcaf0;
+            color: black;
+        }
+        .btn-download-users {
+            background-color: #ffc107;
+            color: black;
+        }
+        .section-title {
+            font-weight: 600;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .notification {
+            font-size: 0.9rem;
+            color: #6c757d;
+            border-left: 4px solid #198754;
+            padding-left: 10px;
+            margin-bottom: 10px;
+        }
+        .recent-activity {
+            font-size: 0.9rem;
+            color: #6c757d;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        .recent-activity-item {
+            margin-bottom: 8px;
+        }
+        .icon-dashboard {
+            font-size: 1.5rem;
+            color: #dc3545;
+        }
+        .icon-courses {
+            font-size: 1.2rem;
+            color: #198754;
+        }
+        .icon-user {
+            font-size: 1.2rem;
+            color: #0d6efd;
+        }
+        .icon-quick {
+            font-size: 1.2rem;
+            color: #fd7e14;
+        }
+        .icon-download {
+            font-size: 1.2rem;
+            color: #dc3545;
+        }
+        .icon-notification {
+            font-size: 1.2rem;
+            color: #ffc107;
+        }
+        .icon-activity {
+            font-size: 1.2rem;
+            color: #fd7e14;
+        }
+        /* Adjust layout to match screenshot button placement */
+        .top-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: flex-end;
+        }
+        .sidebar .section-title {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div><strong>LMS System</strong></div>
+        <div>
+            Welcome, {{ username }} (Instructor) |
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </header>
+    <div class="container-fluid mt-3">
+        <div class="dashboard-title">
+            <span class="icon-dashboard">🎯</span> Dashboard
+        </div>
+        <div class="row">
+            <div class="col-md-8">
+                <div class="top-buttons">
+                    <a href="{{ url_for('create_course') }}" class="btn btn-create-course">+ Create New Course</a>
+                    <a href="{{ url_for('create_quiz') }}" class="btn btn-create-quiz">+ Create New Quiz</a>
+                </div>
+                <div class="section-title">
+                    <span class="icon-courses">📚</span> My Courses
+                    <span class="badge-courses">{{ total }} Courses</span>
+                </div>
+                {% for course in courses %}
+                <div class="course-card">
+                    <div class="course-title">
+                        <span>🎓</span> {{ course.title }}
+                    </div>
+                    <div class="course-description">
+                        {{ course.description }}
+                    </div>
+                    <div class="btn-your-course">Your Course</div>
+                    <a href="{{ url_for('view_course', course_title=course.title) }}" class="btn btn-outline-primary btn-course">🔍 View Course</a>
+                    <a href="{{ url_for('update_course', course_title=course.title) }}" class="btn btn-outline-warning btn-course">✏️ Edit Course</a>
+                    <form action="{{ url_for('delete_course', course_title=course.title) }}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-outline-danger btn-course">🗑️ Delete Course</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="col-md-4">
+                <div class="sidebar">
+                    <div class="section-title">
+                        <span class="icon-user">👤</span> User Information
+                    </div>
+                    <p><strong>Username:</strong> {{ username }}</p>
+                    <p><strong>Role:</strong> <span class="badge bg-primary">{{ role.capitalize() }}</span></p>
+                    <p><strong>Total Courses:</strong> {{ total }}</p>
+
+                    <div class="section-title">
+                        <span class="icon-quick">⚡</span> Quick Actions
+                    </div>
+                    <a href="{{ url_for('create_course') }}" class="btn btn-create-course btn-quick">+ Create New Course</a>
+                    <a href="{{ url_for('manage_students') }}" class="btn btn-manage-students btn-quick">👥 Manage Students</a>
+                    <a href="{{ url_for('view_analytics') }}" class="btn btn-view-analytics btn-quick">📊 View Analytics</a>
+                    <a href="{{ url_for('view_doubts') }}" class="btn btn-view-doubts btn-quick">
+                        ❓ View Doubts
+                        {% if doubts_count > 0 %}
+                        <span class="doubt-badge">{{ doubts_count }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{{ url_for('export_users') }}" class="btn btn-export-users btn-quick">📁 Export Users</a>
+
+                    <div class="section-title">
+                        <span class="icon-download">📥</span> Downloads
+                    </div>
+                    <a href="{{ url_for('quiz_results') }}" class="btn btn-download btn-download-quiz">📥 Download Quiz Results</a>
+                    <a href="{{ url_for('export_enrollments') }}" class="btn btn-download btn-download-enrollments">📥 Download Enrollments</a>
+                    <a href="{{ url_for('export_users') }}" class="btn btn-download btn-download-users">📥 Download User Data</a>
+
+                    <div class="section-title">
+                        <span class="icon-notification">🔔</span> Notifications
+                    </div>
+                    <div class="notification">
+                        No new notifications.
+                    </div>
+
+                    <div class="section-title">
+                        <span class="icon-activity">📝</span> Recent Activity
+                    </div>
+                    <div class="recent-activity">
+                        {% for activity in recent_activity %}
+                        <div class="recent-activity-item">{{ activity }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
