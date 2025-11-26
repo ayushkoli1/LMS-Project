@@ -43,14 +43,16 @@
 <body>
     <h2>📚 Available Courses</h2>
     <div class="course-list">
-        {% for course in courses %}
-        <div class="course-card">
-            <h3>{{ course.title }}</h3>
-            <p>{{ course.description }}</p>
-            <a class="enroll-btn" href="{{ url_for('enroll', course_title=course.title) }}">Enroll</a>
-        </div>
-        {% endfor %}
+    {% for course in courses %}
+    <div class="course-card">
+        <h3>{{ course.CourseName }}</h3>
+        <p><strong>Instructor:</strong> {{ course.Instructor }}</p>
+        <p><strong>Duration:</strong> {{ course.Duration }}</p>
+        <p><strong>Description:</strong>{{ course.Description }}</p>
+        <a class="enroll-btn" href="{{ url_for('enroll', course_title=course.CourseName|urlencode) }}">Enroll</a>
     </div>
+    {% endfor %}
+</div>
     <a class="back-link" href="{{ url_for('student_dashboard') }}">← Back to Dashboard</a>
 </body>
 </html>

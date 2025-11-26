@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Manage Assignments{% endblock %}
+
+{% block content %}
+<h1>📘 Manage Assignments</h1>
+
+<a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
+
+<table>
+    <tr>
+        <th>Title</th>
+        <th>Course</th>
+        <th>Deadline</th>
+        <th>Action</th>
+    </tr>
+    {% for assignment in assignments %}
+        <tr>
+            <td>{{ assignment.Title }}</td>
+            <td>{{ assignment.Course }}</td>
+            <td>{{ assignment.Deadline }}</td>
+            <td>
+                <a href="#" class="btn btn-danger">Delete</a>
+            </td>
+        </tr>
+    {% else %}
+        <tr><td colspan="4">No assignments found.</td></tr>
+    {% endfor %}
+</table>
+{% endblock %}

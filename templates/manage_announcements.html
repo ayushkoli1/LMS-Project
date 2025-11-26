@@ -1,0 +1,15 @@
+{% extends "admin_base.html" %}
+{% block content %}
+<h1>Announcements</h1>
+
+<form method="POST">
+  <textarea name="message" placeholder="Type announcement..." required></textarea>
+  <button type="submit">Add</button>
+</form>
+
+<ul style="margin-top:20px;">
+  {% for a in announcements %}
+  <li><b>{{ a.created_at.strftime('%d %b %Y %H:%M') }}</b> — {{ a.message }}</li>
+  {% endfor %}
+</ul>
+{% endblock %}

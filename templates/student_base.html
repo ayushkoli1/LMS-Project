@@ -1,0 +1,31 @@
+<!-- templates/student_base.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}Student Dashboard{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #f8f9fa; margin: 0; }
+        header { background: #0b5ed7; color: white; padding: 15px; text-align: center; }
+        nav { background: #084298; text-align: center; padding: 10px; }
+        nav a { color: white; margin: 0 12px; text-decoration: none; font-weight: 500; }
+        nav a:hover { text-decoration: underline; }
+        main { padding: 25px; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>E-Learning Platform</h1>
+    </header>
+    <nav>
+        <a href="{{ url_for('student_dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('view_assignments') }}">Assignments</a>
+        <a href="{{ url_for('view_announcements') }}">Announcements</a>
+        <a href="{{ url_for('leaderboard') }}">Leaderboard</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </nav>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

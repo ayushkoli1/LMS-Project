@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Feedbacks</title>
+    <style>
+        body { background-color: #f4f6f9; font-family: 'Poppins', sans-serif; margin: 0; }
+        .container { max-width: 900px; margin: 40px auto; background: #fff; border-radius: 10px; padding: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { color: #2a4d9b; }
+        .feedback { border-bottom: 1px solid #ddd; padding: 15px 0; }
+        .feedback p { margin: 5px 0; }
+        .feedback small { color: #777; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Student Feedbacks</h2>
+        {% for fb in feedbacks %}
+        <div class="feedback">
+            <p><strong>{{ fb.username }}</strong> ({{ fb.email }})</p>
+            <p>{{ fb.message }}</p>
+            <small>Submitted on: {{ fb.date }}</small>
+        </div>
+        {% else %}
+        <p>No feedbacks yet.</p>
+        {% endfor %}
+    </div>
+</body>
+</html>

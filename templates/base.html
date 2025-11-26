@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LMS Admin{% endblock %}</title>
+    <style>
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f5f7fb;
+        color: #333;
+    }
+
+    .navbar {
+        background-color: #0056b3;
+        color: white;
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .navbar a {
+        color: white;
+        margin: 0 10px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: 0.3s;
+    }
+
+    .navbar a:hover {
+        background-color: #007bff;
+        padding: 10px 15px;
+        border-radius: 4px;
+    }
+
+    .container {
+        padding: 30px;
+        max-width: 1200px;
+        margin: auto;
+    }
+
+    h1, h2 {
+        color: #0056b3;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+    }
+
+    th {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .btn {
+        background-color: #007bff;
+        color: white;
+        padding: 8px 12px;
+        text-decoration: none;
+        border-radius: 4px;
+        transition: 0.3s;
+    }
+
+    .btn:hover {
+        background-color: #0056b3;
+    }
+
+    .logout-btn {
+        background-color: #f44336;
+        padding: 8px 12px;
+        border-radius: 4px;
+        text-decoration: none;
+        color: white;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    .logout-btn:hover {
+        background-color: #d32f2f;
+    }
+
+    .card {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+</style>
+</head>
+<body>
+    <div class="navbar">
+        {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('admin_dashboard') }}">Admin</a>
+<a href="{{ url_for('manage_users') }}">Users</a>
+<a href="{{ url_for('manage_courses') }}">Courses</a>
+<a href="{{ url_for('admin_manage_assignments') }}">View All Assignments &raquo;</a>
+<a href="{{ url_for('manage_feedback') }}">Feedback</a>
+<a href="{{ url_for('manage_timetable') }}">Timetable</a>
+<a href="{{ url_for('manage_doubts') }}">Doubts</a>
+<a href="{{ url_for('admin_quiz_results') }}">Quiz Results</a>
+<a href="{{ url_for('announcements') }}">Announcements</a>
+        {% elif session.get('role') == 'student' %}
+            <a href="{{ url_for('student_dashboard') }}">Student Dashboard</a>
+        {% elif session.get('role') == 'instructor' %}
+            <a href="{{ url_for('instructor_dashboard') }}">Instructor Dashboard</a>
+        {% endif %}
+
+        {% if session.get('user') %}
+            <a href="{{ url_for('logout') }}" class="logout-btn">Logout ({{ session['user'] }})</a>
+        {% endif %}
+    </div>
+
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>
