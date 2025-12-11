@@ -5,7 +5,9 @@ import pandas as pd
 from bson.objectid import ObjectId
 from flask import  flash
 import os
-#import io
+from werkzeug.utils import secure_filename
+UPLOAD_FOLDER = "static/profile_pics"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 import random
 import json
 from datetime import datetime
@@ -16,6 +18,9 @@ def get_current_role():
 
 def get_current_email():
     return session.get("impersonate_email") or session.get("email")
+# ------------------- Helper Functions -------------------
+def get_current_user():
+    return session.get("user")
 
 def get_db_connection():
     return mysql.connector.connect(
@@ -37,8 +42,6 @@ try:
     print("✅ MongoDB Connected Successfully!")
 except Exception as e:
     print("❌ MongoDB Connection Failed:", e)
-
-# Define upload folder path for Excel files
 app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'uploads')
 
 # Create the folder if it doesn’t exist
@@ -208,49 +211,53 @@ def student_dashboard():
 @app.route('/access_dashboard/<email>')
 def access_dashboard(email):
     user = users_collection.find_one({"Email": email})
-    
+
     if not user:
         flash("User not found!", "danger")
         return redirect(url_for('manage_users'))
-    
+
     # Store session details temporarily
     session['user'] = user['Name']
     session['email'] = user['Email']
     session['role'] = user['Role']
+    session['background'] = user.get('Background', 'Non-IT')
 
     # Redirect based on role
-    if user['Role'].lower() == 'student':
+    role = user['Role'].lower()
+
+    if role == 'student':
         return redirect(url_for('student_dashboard'))
-    elif user['Role'].lower() == 'instructor':
+    elif role == 'instructor':
         return redirect(url_for('instructor_dashboard'))
-    elif user['Role'].lower() == 'admin':
+    elif role == 'admin':
         return redirect(url_for('admin_dashboard'))
     else:
         flash("Invalid role for this user!", "warning")
         return redirect(url_for('manage_users'))
-# ------------------------ Quiz ------------------------
 @app.route('/quiz', methods=['GET', 'POST'])
 def quiz():
-    if session.get('role') != 'student':
-        return redirect(url_for('login'))
+    role = session.get('role')
 
-    quiz_file = 'quiz_questions.json'
-    email = session.get('email')
-    name = session.get('user')
-    background = session.get('background', 'Non-IT')
-
-    with open(quiz_file, 'r') as f:
-        questions = json.load(f)
-    question_set = questions['IT'] if background == 'IT' else questions['Non-IT']
-
+    # If POST (submit), only student can submit quiz
     if request.method == 'POST':
+        if role != 'student':
+            return render_template("access_denied.html")
+
+        quiz_file = 'quiz_questions.json'
+        email = get_current_email()
+        name = session.get('user')
+        background = session.get('background', 'Non-IT')
+
+        with open(quiz_file, 'r') as f:
+            questions = json.load(f)
+        question_set = questions['IT'] if background == 'IT' else questions['Non-IT']
+
         data = request.form
         correct = sum(1 for i, q in enumerate(question_set[:10]) if data.get(f'q{i}') == q['answer'])
         total = len(question_set[:10])
         percentage = (correct / total) * 100
         level = "Beginner" if percentage < 50 else "Intermediate" if percentage < 80 else "Advanced"
 
-        # Save to MongoDB
         quiz_results_collection.insert_one({
             "Name": name,
             "Email": email,
@@ -264,58 +271,89 @@ def quiz():
 
         return render_template('result.html', level=level, score=correct, total=total, background=background)
 
-    random.shuffle(question_set)
-    return render_template('quiz.html', questions=question_set[:10], background=background)
-# ------------------------ Quiz History ------------------------
-@app.route('/quiz_history')
-def quiz_history():
-    if session.get('role') != 'student':
+    # GET request (view questions)
+    if role not in ['student', 'admin']:
         return redirect(url_for('login'))
 
-    email = session.get('email')
-    records = list(quiz_results_collection.find({'Email': email}).sort('DateTime', -1))
-    return render_template('quiz_history.html', records=records)
+    quiz_file = 'quiz_questions.json'
+    background = session.get('background', 'Non-IT')
+
+    with open(quiz_file, 'r') as f:
+        questions = json.load(f)
+    question_set = questions['IT'] if background == 'IT' else questions['Non-IT']
+
+    random.shuffle(question_set)
+    return render_template('quiz.html', questions=question_set[:10], background=background, role=role)
+@app.route('/quiz_history')
+def quiz_history():
+    role = session.get('role')
+
+    if role == 'student':
+        email = get_current_email()
+        records = list(quiz_results_collection.find({'Email': email}).sort('DateTime', -1))
+
+    elif role == 'admin':
+        # Admin sees all quiz history
+        records = list(quiz_results_collection.find().sort('DateTime', -1))
+
+    else:
+        return redirect(url_for('login'))
+
+    return render_template('quiz_history.html', records=records, role=role)
 # ------------------------ Profile ------------------------
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():
-    if session.get('role') != 'student':
+
+    # ✅ Allow both admin & student
+    if 'email' not in session or session.get('role') not in ['student', 'admin']:
         return redirect(url_for('login'))
 
-    email = session.get('email')
+    # ✅ If ADMIN is viewing someone else's profile
+    viewed_email = request.args.get('email')  # admin passes ?email=student@mail.com
+
+    if session.get('role') == 'admin' and viewed_email:
+        email = viewed_email
+    else:
+        email = session.get('email')
+
     user = users_collection.find_one({'Email': email})
 
     if not user:
-        return "User not found."
+        return redirect(url_for('login'))
 
-    if request.method == 'POST':
+    # ✅ Only student can UPDATE their own profile
+    if request.method == 'POST' and session.get('role') == 'student':
+
         users_collection.update_one(
             {'Email': email},
             {'$set': {
-                'Name': request.form['name'],
-                'Password': request.form['password'],
-                'Background': request.form['background']
+                'Name': request.form.get('name'),
+                'Password': request.form.get('password') or user.get('Password'),
+                'Background': request.form.get('background'),
+                'Phone': request.form.get('phone'),
+                'Gender': request.form.get('gender'),
+                'Bio': request.form.get('bio')
             }}
         )
-        session['user'] = request.form['name']
-        session['background'] = request.form['background']
 
-    user = users_collection.find_one({'Email': email})
-    return render_template('profile.html', user=user)
+        session['user'] = request.form.get('name')
+        session['background'] = request.form.get('background')
 
-# ------------------------ Browse Courses ------------------------
+        return redirect(url_for('profile'))
+
+    return render_template('profile.html', user=user)#---------------------- Browse Courses ------------------------
 @app.route('/courses')
 def browse_courses():
-    if session.get('role') != 'student':
+    if session.get('role') not in ['student', 'admin']:
         return redirect(url_for('login'))
 
     courses = list(courses_collection.find())
     return render_template('courses.html', courses=courses)
 
-# ------------------------ Enroll in Course ------------------------
 @app.route('/enroll/<course_title>')
 def enroll(course_title):
     if session.get('role') != 'student':
-        return redirect(url_for('login'))
+        return render_template('access_denied.html')
 
     record = {
         "Student": session.get('user'),
@@ -326,7 +364,6 @@ def enroll(course_title):
 
     enrollments_collection.insert_one(record)
     return redirect(url_for('browse_courses'))
-
 # ------------------------ Instructor Dashboard ------------------------
 @app.route('/instructor_dashboard')
 def instructor_dashboard():
@@ -411,38 +448,6 @@ def view_course(course_title):
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-# ------------------------ Manage Assignments ------------------------
-@app.route("/manage_assignments", methods=["GET", "POST"])
-def manage_assignments():
-    if request.method == "POST":
-        course = request.form["course"]
-        title = request.form["title"]
-        due_date = request.form["due_date"]
-        description = request.form["description"]
-        
-        # Handle file upload
-        file = request.files.get("assignment_file")
-        filename = None
-        if file and file.filename:
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
-
-        # Save to MongoDB
-        assignments_collection.insert_one({
-            "course": course,
-            "title": title,
-            "due_date": due_date,
-            "description": description,
-            "file_name": filename,
-            "created_at": datetime.now().strftime("%d-%m-%Y %H:%M")
-        })
-
-        return redirect(url_for("manage_assignments"))
-
-    # Fetch all assignments
-    assignments = list(assignments_collection.find().sort("created_at", -1))
-    return render_template("manage_assignments.html", assignments=assignments)
-
 # ------------------------ Update Course ------------------------
 @app.route('/update_course/<course_title>', methods=['GET', 'POST'])
 def update_course(course_title):
@@ -489,7 +494,7 @@ def enroll_student():
 
     course_title = request.form.get('course_title')
     student_name = session.get('user')
-    student_email = session.get('email')
+    student_email = get_current_email()
 
     # Check if course exists
     course = db.courses.find_one({'title': course_title})
@@ -554,93 +559,13 @@ def view_analytics():
 
 #######################################################################################
 #AYUSH DASBOARD FEATURES
-# ------------------------ Quiz Results (Instructor) ------------------------
-@app.route('/quiz_results')
-def quiz_results():
-    if session.get('role') != 'instructor':
-        return "Access Denied", 403
-
-    # Fetch all quiz results from MongoDB
-    results = list(db.quiz_results.find({}, {'_id': 0}))
-
-    return render_template('quiz_results.html', records=results)
-# ------------------------ View Doubts (Instructor) ------------------------
-@app.route('/view_doubts')
-def view_doubts():
-    if session.get('role') != 'instructor':
-        return "Access Denied", 403
-
-    file_path = os.path.join(app.config['UPLOAD_FOLDER'], 'doubts.xlsx')
-    records = []
-    if os.path.exists(file_path):
-        df = pd.read_excel(file_path)
-        records = df.to_dict(orient='records')
-
-    return render_template('view_doubts.html', records=records)
-#---------------------export users-----------------------------------
-@app.route('/export_users')
-def export_users():
-    if session.get('role') != 'instructor':
-        return "Access Denied", 403
-
-    file_path = os.path.join(app.config['UPLOAD_FOLDER'], 'users.xlsx')
-    if os.path.exists(file_path):
-        return send_file(file_path, as_attachment=True)
-    return "User data file not found.", 404
-
-# ------------------------ Create Quiz ------------------------
-@app.route('/create_quiz', methods=['GET', 'POST'])
-def create_quiz():
-    if session.get('role') != 'instructor':
-        return redirect(url_for('login'))
-
-    path = 'courses.xlsx'
-    course_titles = []
-    if os.path.exists(path):
-        df = pd.read_excel(path)
-        course_titles = df['title'].tolist()
-
-    if request.method == 'POST':
-        subject = request.form.get('subject')
-        questions = request.form.getlist('question')
-        options = request.form.getlist('option')
-        answers = request.form.getlist('answer')
-
-        quiz_data = {
-            subject: []
-        }
-
-        for i in range(len(questions)):
-            quiz_data[subject].append({
-                'question': questions[i],
-                'options': options[i].split(';'),  # options separated by semicolon
-                'answer': answers[i]
-            })
-
-        quiz_file = 'quiz_questions.json'
-        if os.path.exists(quiz_file):
-            with open(quiz_file, 'r') as f:
-                existing_data = json.load(f)
-        else:
-            existing_data = {}
-
-        existing_data.update(quiz_data)
-
-        with open(quiz_file, 'w') as f:
-            json.dump(existing_data, f, indent=4)
-
-        log_activity(f"Instructor {session.get('user')} created quiz for subject: {subject}")
-
-        return redirect(url_for('instructor_dashboard'))
-
-    return render_template('create_quiz.html', course_titles=course_titles)
 # ------------------------ Enrollments ------------------------
 @app.route('/my_enrollments')
 def my_enrollments():
     if session.get('role') != 'student':
         return redirect(url_for('login'))
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], 'enrollments.xlsx')
-    email = session.get('email')
+    email = get_current_email()
     records = []
     if os.path.exists(file_path):
         df = pd.read_excel(file_path)
@@ -655,7 +580,7 @@ def my_level():
     if session.get('role') != 'student':
         return redirect(url_for('login'))
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], 'quiz_results.xlsx')
-    email = session.get('email')
+    email = get_current_email()
     level = None
     if os.path.exists(file_path):
         df = pd.read_excel(file_path)
@@ -672,7 +597,7 @@ def skill_suggestions():
     if session.get('role') != 'student':
         return redirect(url_for('login'))
 
-    email = session.get('email').lower().strip()
+    email = get_current_email().lower().strip()
     suggestions = []
 
     user_quizzes = list(mongo.db.quiz_results.find({"email": email}).sort("DateTime", -1))
@@ -701,17 +626,25 @@ def view_assignments():
     return render_template('manage_assignments.html', assignments=assignments)
 
 
-# ------------------------ View Announcements ------------------------
+# ------------------------ View Announcements (STUDENT) ------------------------
 @app.route('/view_announcements')
 def view_announcements():
     if session.get('role') != 'student':
         return redirect(url_for('login'))
 
-    # Fetch announcements from MongoDB and sort by Date (latest first)
-    announcements = list(db.announcements.find().sort("Date", -1))
+    # Fetch announcements sorted by latest first
+    announcements = list(announcements_collection.find().sort("created_at", -1))
+
+    # Convert datetime to readable format
+    for a in announcements:
+        created_at = a.get("created_at")
+
+        if isinstance(created_at, datetime):
+            a["created_at"] = created_at.strftime("%d %b %Y, %I:%M %p")
+        else:
+            a["created_at"] = "N/A"
 
     return render_template('view_announcements.html', announcements=announcements)
-
 
 # ------------------------ Download Assignment File ------------------------
 @app.route('/download_assignment/<filename>')
@@ -722,26 +655,25 @@ def download_assignment(filename):
         return send_file(file_path, as_attachment=True)
 
     return "File not found", 404
-
 # ------------------------ Ask a Doubt ------------------------
 @app.route('/ask_doubt', methods=['GET', 'POST'])
 def ask_doubt():
-    if session.get('role') != 'student':
-        return redirect(url_for('login'))
+    role = get_current_role()
+    email = get_current_email()
+
+    if role != 'student':
+        return render_template('access_denied.html')
 
     if request.method == 'POST':
         doubt = request.form.get('doubt')
-        name = session.get('user')
-        email = session.get('email')
 
         doubt_record = {
-            "Name": name,
+            "Name": user,
             "Email": email,
             "Doubt": doubt,
             "Timestamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         }
 
-        # Save to MongoDB
         db.doubts.insert_one(doubt_record)
 
         return render_template('ask_doubt.html', message="✅ Your doubt has been submitted successfully!")
@@ -750,58 +682,73 @@ def ask_doubt():
 # ------------------------ Feedback ------------------------
 @app.route('/feedback', methods=['GET', 'POST'])
 def feedback():
-    if session.get('role') != 'student':
-        return redirect(url_for('login'))
+    role = get_current_role()
+    email = get_current_email()
+    
 
-    name = session.get('user')
-    email = session.get('email')
+    # Only students can access feedback page
+    if role != 'student':
+        return render_template('access_denied.html')
 
     if request.method == 'POST':
         rating = request.form.get('rating')
         comments = request.form.get('comments')
 
         record = {
-            "Name": name,
+            "Name": user,
             "Email": email,
             "Rating": rating,
             "Comments": comments,
             "DateTime": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         }
 
-        # Save to MongoDB
-        db.feedback.insert_one(record)
+        feedback_collection.insert_one(record)
 
+        flash("Thank you! Your feedback has been submitted.", "success")
         return redirect(url_for('student_dashboard'))
 
     return render_template('feedback.html')
+# ------------------------ Student Assignments ------------------------
+@app.route("/student/assignments")
+def student_assignments():
+    if session.get("role") != "student":
+        return redirect(url_for("login"))
+
+    assignments = list(assignments_collection.find().sort("created_at", -1))
+
+    return render_template("student_assignments.html", assignments=assignments)
 # ------------------------ Leaderboard ------------------------
 @app.route('/leaderboard')
 def leaderboard():
-    if session.get('role') != 'student':
-        return redirect(url_for('login'))
+    role = get_current_role()
+    email = get_current_email()
+    
+    if role != 'student':
+        return render_template('access_denied.html')
+
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], 'quiz_results.xlsx')
     leaderboard_data = []
     your_rank = None
-    current_email = session.get('email', '').lower().strip()
     top_three = []
 
     if os.path.exists(file_path):
         df = pd.read_excel(file_path)
         df['Email'] = df['Email'].str.lower().str.strip()
+
         grouped = df.groupby('Email').agg({
             'Name': 'first',
             'Score': 'sum',
             'Total': 'sum'
         }).reset_index()
+
         grouped['Percentage'] = (grouped['Score'] / grouped['Total']) * 100
         leaderboard_data = grouped.sort_values(by='Percentage', ascending=False).to_dict(orient='records')
 
-        # Get top 3
         top_three = leaderboard_data[:3]
 
         # Find user rank
         for index, student in enumerate(leaderboard_data, start=1):
-            if student['Email'] == current_email:
+            if student['Email'] == email:
                 your_rank = index
                 break
 
@@ -810,12 +757,12 @@ def leaderboard():
         leaderboard=leaderboard_data,
         your_rank=your_rank,
         top_three=top_three,
-        current_user_email=current_email
+        current_user_email=email
     )
 # -------------------- ADMIN DASHBOARD --------------------
 @app.route('/admin_dashboard')
 def admin_dashboard():
-    role = get_current_role()  # NEW
+    role = session['role']  # NEW
 
     if role != "admin":  # NEW CHECK
         flash("Access Denied", "danger")
@@ -846,7 +793,7 @@ def admin_dashboard():
 @app.route("/manage_users", methods=["GET"])
 def manage_users():
     if session.get("role") != "admin":
-        return redirect(url_for("login"))
+        return render_template("access_denied.html")
 
     search_query = request.args.get("search", "").strip()
     role_filter = request.args.get("role", "").strip()
@@ -894,40 +841,72 @@ def stop_impersonate():
 # -------------------- ADD, EDIT, DELETE USERS --------------------
 @app.route('/add_user', methods=['GET', 'POST'])
 def add_user():
+    # Only admin can add users
+    if session.get('role') != 'admin':
+        return render_template('access_denied.html')
+
     if request.method == 'POST':
         new_user = {
             "Name": request.form['Name'],
             "Email": request.form['Email'],
             "Password": request.form['Password'],
-            "Role": request.form['Role']
+            "Role": request.form['Role'],
+            "Background": request.form.get('Background', 'Non-IT')  # default
         }
+
         users_collection.insert_one(new_user)
         flash("✅ User added successfully!", "success")
         return redirect(url_for('manage_users'))
+
     return render_template('add_edit_user.html', action="Add", user={})
+
+
 @app.route('/edit_user/<user_id>', methods=['GET', 'POST'])
 def edit_user(user_id):
+    # Only admin can edit users
+    if session.get('role') != 'admin':
+        return render_template('access_denied.html')
+
     user = users_collection.find_one({"_id": ObjectId(user_id)})
+
     if request.method == 'POST':
-        users_collection.update_one({"_id": ObjectId(user_id)}, {"$set": {
+        updated_data = {
             "Name": request.form['Name'],
             "Email": request.form['Email'],
             "Password": request.form['Password'],
-            "Role": request.form['Role']
-        }})
-        flash("User updated successfully!", "success")
+            "Role": request.form['Role'],
+            "Background": request.form.get('Background', 'Non-IT')
+        }
+
+        users_collection.update_one({"_id": ObjectId(user_id)}, {"$set": updated_data})
+
+        flash("✅ User updated successfully!", "success")
         return redirect(url_for('manage_users'))
+
     return render_template('add_edit_user.html', action="Edit", user=user)
+
 
 @app.route('/delete_user/<user_id>')
 def delete_user(user_id):
+    # Only admin can delete
+    if session.get('role') != 'admin':
+        return render_template('access_denied.html')
+
+    user_to_delete = users_collection.find_one({"_id": ObjectId(user_id)})
+
+    # Prevent deleting own admin account
+    if user_to_delete and user_to_delete['Email'] == session.get('email'):
+        flash("⚠ You cannot delete your own admin account!", "danger")
+        return redirect(url_for('manage_users'))
+
     users_collection.delete_one({"_id": ObjectId(user_id)})
-    flash("User deleted successfully!", "info")
+    flash("🗑 User deleted successfully!", "info")
+
     return redirect(url_for('manage_users'))
 # -------------------- IMPERSONATED STUDENT DASHBOARD --------------------
 @app.route('/imp_student_dashboard')
 def imp_student_dashboard():
-    if session.get("role") != "admin":
+    if get_current_role() != "admin":
         return render_template("access_denied.html")
 
     email = session.get("impersonate_email")
@@ -984,15 +963,18 @@ def imp_student_dashboard():
 # -------------------- MANAGE COURSES --------------------
 @app.route('/manage_courses')
 def manage_courses():
-    if 'role' not in session or session['role'] != 'admin':
-        flash("Access denied", "danger")
-        return redirect(url_for('login'))
+    if session.get('role') not in ['admin']:
+        return render_template('access_denied.html')
+
     courses = list(courses_collection.find())
     return render_template('manage_courses.html', courses=courses)
 
 
 @app.route('/add_course', methods=['GET', 'POST'])
 def add_course():
+    if session.get('role') not in ['admin']:
+        return render_template('access_denied.html')
+
     if request.method == 'POST':
         new_course = {
             "CourseName": request.form['CourseName'],
@@ -1000,34 +982,49 @@ def add_course():
             "Duration": request.form['Duration'],
             "Description": request.form['Description']
         }
+
         courses_collection.insert_one(new_course)
-        flash("Course added successfully!", "success")
+        flash("✅ Course added successfully!", "success")
         return redirect(url_for('manage_courses'))
+
     return render_template('add_edit_course.html', action="Add", course={})
 
 
 @app.route('/edit_course/<id>', methods=['GET', 'POST'])
 def edit_course(id):
+    if session.get('role') not in ['admin']:
+        return render_template('access_denied.html')
+
     course = courses_collection.find_one({"_id": ObjectId(id)})
+
     if request.method == 'POST':
-        courses_collection.update_one({"_id": ObjectId(id)}, {"$set": {
+        updated_data = {
             "CourseName": request.form['CourseName'],
             "Instructor": request.form['Instructor'],
             "Duration": request.form['Duration'],
             "Description": request.form['Description']
-        }})
-        flash("Course updated successfully!", "success")
+        }
+
+        courses_collection.update_one(
+            {"_id": ObjectId(id)},
+            {"$set": updated_data}
+        )
+
+        flash("✏ Course updated successfully!", "success")
         return redirect(url_for('manage_courses'))
+
     return render_template('add_edit_course.html', action="Edit", course=course)
 
 
 @app.route('/delete_course/<id>')
 def delete_course_route(id):
-    courses_collection.delete_one({"_id": ObjectId(id)})
-    flash("Course deleted successfully!", "info")
-    return redirect(url_for('manage_courses'))
+    if session.get('role') not in ['admin']:
+        return render_template('access_denied.html')
 
-# -------------------- ANNOUNCEMENTS --------------------
+    courses_collection.delete_one({"_id": ObjectId(id)})
+    flash("🗑 Course deleted successfully!", "info")
+
+    return redirect(url_for('manage_courses'))
 @app.template_filter('timeago')
 def timeago(value):
     if not value:
@@ -1035,7 +1032,7 @@ def timeago(value):
     if isinstance(value, str):
         try:
             value = datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
-        except ValueError:
+        except:
             return value
 
     now = datetime.now()
@@ -1058,7 +1055,7 @@ def timeago(value):
 # -------------------- ROUTE: View + Post Announcements --------------------
 @app.route("/announcements", methods=["GET", "POST"])
 def announcements():
-    if "role" not in session or session["role"] != "admin":
+    if session.get("role") not in ['admin']:
         return redirect(url_for("login"))
 
     if request.method == "POST":
@@ -1073,43 +1070,29 @@ def announcements():
             flash("⚠ Message cannot be empty.", "danger")
         return redirect(url_for("announcements"))
 
-    # ✅ Fetch announcements sorted by latest first
     announcements_list = list(announcements_collection.find().sort("created_at", -1))
 
     for a in announcements_list:
-        created_at = a.get("created_at")
-        if created_at:
-            # If stored as string, convert it to datetime
-            if isinstance(created_at, str):
-                try:
-                    created_at = datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S.%f")
-                except ValueError:
-                    try:
-                        created_at = datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S")
-                    except:
-                        created_at = None
-
-            if created_at:
-                a["created_at"] = created_at.strftime("%d %b %Y, %I:%M %p")
-            else:
-                a["created_at"] = "N/A"
+        dt = a.get("created_at")
+        if isinstance(dt, datetime):
+            a["created_at"] = dt.strftime("%d %b %Y, %I:%M %p")
         else:
             a["created_at"] = "N/A"
 
     return render_template("announcements.html", announcements=announcements_list)
-# -------------------- ROUTE: Delete Announcement --------------------
+# -------------------- Delete Announcement --------------------
 @app.route("/announcements/delete/<id>")
 def delete_announcement(id):
-    if "role" not in session or session["role"] != "admin":
+    if session.get("role") not in ['admin']:
         return redirect(url_for("login"))
 
     announcements_collection.delete_one({"_id": ObjectId(id)})
     flash("🗑 Announcement deleted successfully!", "success")
     return redirect(url_for("announcements"))
-# -------------------- ROUTE: Edit Announcement --------------------
+# -------------------- Edit Announcement --------------------
 @app.route("/announcements/edit/<id>", methods=["GET", "POST"])
 def edit_announcement(id):
-    if "role" not in session or session["role"] != "admin":
+    if session.get("role") not in ['admin']:
         return redirect(url_for("login"))
 
     announcement = announcements_collection.find_one({"_id": ObjectId(id)})
@@ -1127,30 +1110,26 @@ def edit_announcement(id):
             flash("✏ Announcement updated successfully!", "success")
         else:
             flash("⚠ Message cannot be empty.", "danger")
+
         return redirect(url_for("announcements"))
 
     return render_template("edit_announcement.html", announcement=announcement)
-# ---------- FEEDBACK (ADMIN) ----------
+# ---------- FEEDBACK MANAGEMENT (ADMIN) ----------
 @app.route('/manage_feedback')
 def manage_feedback():
-    if session.get('role') != 'admin':
+    if session.get('role') not in ['admin']:
         return render_template('access_denied.html')
+
     feedbacks = list(feedback_collection.find().sort('DateTime', -1))
-    # normalize
+
     for f in feedbacks:
-        f['DateTime_str'] = f.get('DateTime')
-        if isinstance(f.get('DateTime'), datetime):
-            f['DateTime_str'] = f['DateTime'].strftime('%Y-%m-%d %H:%M')
+        dt = f.get('DateTime')
+        if isinstance(dt, datetime):
+            f['DateTime_str'] = dt.strftime('%Y-%m-%d %H:%M')
+        else:
+            f['DateTime_str'] = dt or "N/A"
+
     return render_template('manage_feedback.html', feedbacks=feedbacks)
-
-@app.route('/delete_feedback/<id>')
-def delete_feedback(id):
-    if session.get('role') != 'admin':
-        return render_template('access_denied.html')
-    feedback_collection.delete_one({'_id': ObjectId(id)})
-    flash("Feedback removed.", "danger")
-    return redirect(url_for('manage_feedback'))
-
 # ---------- TIMETABLE (ADMIN) ----------
 @app.route('/manage_timetable', methods=['GET', 'POST'])
 def manage_timetable():
