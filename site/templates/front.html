@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Online Learning Management System</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+
+    .navbar {
+      background-color: #1200b0;
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 20px;
+      align-items: center;
+    }
+
+    .navbar-left, .navbar-right {
+      display: flex;
+      align-items: center;
+    }
+
+    .navbar-left a, .navbar-right a {
+      color: white;
+      text-decoration: none;
+      margin: 0 10px;
+      font-weight: bold;
+    }
+
+    .navbar-left a:first-child {
+      color: #ccc;
+    }
+
+    .navbar-right a:last-child {
+      color: #ccc;
+    }
+
+    /* Parent Login Button */
+    .parent-login-btn {
+      background: #ffdd57;
+      color: #000;
+      padding: 8px 14px;
+      border-radius: 6px;
+      margin-left: 10px;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .parent-login-btn:hover {
+      background: #ffe88a;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 40px 20px;
+      background: #eaf0f2;
+    }
+
+    .hero h1 {
+      font-size: 2.5em;
+      margin-bottom: 20px;
+    }
+
+    .hero p {
+      font-size: 1.1em;
+      max-width: 700px;
+      margin: auto;
+      line-height: 1.6;
+    }
+
+    .buttons {
+      margin-top: 25px;
+    }
+
+    .buttons .btn {
+      padding: 10px 20px;
+      margin: 0 10px;
+      font-size: 1em;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .login-btn {
+      background-color: #002f6c;
+      color: white;
+    }
+
+    .signup-btn {
+      background-color: #fff;
+      color: #002f6c;
+      border: 1px solid #002f6c;
+    }
+
+    .image-section {
+      text-align: center;
+      padding: 30px;
+    }
+
+    .image-section img {
+      max-width: 80%;
+      height: auto;
+      border-radius: 10px;
+    }
+
+    .section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 60px 10%;
+      gap: 40px;
+      flex-wrap: wrap;
+      background-color: #fff;
+    }
+
+    .text {
+      flex: 1;
+      min-width: 300px;
+    }
+
+    .image {
+      flex: 1;
+      min-width: 300px;
+    }
+
+    .image img {
+      width: 100%;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    h2, .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px;
+      margin-bottom: 15px;
+      color: #1e1e1e;
+      text-align: center;
+    }
+
+    .icon-row span {
+      display: inline-block;
+      margin-right: 15px;
+      font-size: 14px;
+      font-weight: bold;
+      color: #666;
+    }
+
+    .stats {
+      display: flex;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .stat-box {
+      background-color: #f0f0f0;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+      flex: 1;
+    }
+
+    .stat-box h3 {
+      font-size: 24px;
+      margin-bottom: 5px;
+      color: #5200b0;
+    }
+
+    .features-list {
+      list-style: none;
+      padding: 0;
+      margin-top: 20px;
+    }
+
+    .features-list li {
+      margin-bottom: 14px;
+      font-size: 17px;
+      position: relative;
+      padding-left: 28px;
+    }
+
+    .features-list li::before {
+      content: "✔";
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: green;
+    }
+
+    .path-section {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      padding: 0 10%;
+      flex-wrap: wrap;
+      margin-bottom: 60px;
+    }
+
+    .path-card {
+      background: #fff;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+      flex: 1 1 300px;
+      text-align: center;
+      max-width: 340px;
+      transition: transform 0.3s ease;
+    }
+
+    .path-card:hover {
+      transform: translateY(-8px);
+    }
+
+    .icon {
+      font-size: 36px;
+      margin-bottom: 16px;
+      color: #0066cc;
+    }
+
+    .path-card h3 {
+      font-size: 20px;
+      margin-bottom: 10px;
+      color: #222;
+    }
+
+    .path-card p {
+      font-size: 15px;
+      color: #666;
+      margin: 5px 0;
+    }
+
+    .desc {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 18px;
+    }
+
+    .learn-btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background: #faf5e6;
+      color: #333;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 500;
+      border: 1px solid #e3d8b8;
+      transition: background 0.3s ease;
+    }
+
+    .learn-btn:hover {
+      background: #f0e6cd;
+    }
+
+    .footer {
+      background: #0c1c2c;
+      color: #f0f0f0;
+      display: flex;
+      justify-content: space-around;
+      padding: 60px 10%;
+      flex-wrap: wrap;
+    }
+
+    .footer-column {
+      flex: 1 1 220px;
+      margin: 20px;
+    }
+
+    .footer-column h4 {
+      font-size: 18px;
+      margin-bottom: 14px;
+      color: #fdfdfd;
+    }
+
+    .footer-column p {
+      font-size: 14px;
+      color: #c5c5c5;
+    }
+
+    .footer-column ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .footer-column ul li {
+      margin-bottom: 10px;
+    }
+
+    .footer-column ul li a {
+      text-decoration: none;
+      color: #c0d0e0;
+      transition: color 0.3s ease;
+    }
+
+    .footer-column ul li a:hover {
+      color: #ffffff;
+    }
+
+    @media (max-width: 768px) {
+      .section {
+        flex-direction: column;
+        padding: 40px 6%;
+      }
+
+      .path-section {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .footer {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <div class="navbar">
+    <div class="navbar-left">
+      <a href="{{ url_for('home') }}">Home</a>
+    </div>
+    <div class="navbar-right">
+      <a href="/contact">Contact us</a>
+      <a href="/about">About us</a>
+      <a href="/login">Login</a>
+      <a href="/signup">Sign up</a>
+      <!-- Parent Login Button (Newly Added) -->
+      <a href="/parent-login" class="parent-login-btn">Parent Login</a>
+    </div>
+    <a href="/parent-login" style="color: white; font-weight: bold; margin-left: 10px;">Parent Login</a>
+  </div>
+
+  <!-- Hero Section -->
+  <div class="hero">
+    <h1>Online Learning Management System</h1>
+    <p>
+      Transform your educational experience with our comprehensive learning management system.
+      Designed for students, educators, and professionals, our platform provides innovative tools
+      for interactive learning, progress tracking, and collaborative education.
+    </p>
+    <div class="buttons">
+      <a href="/signup" class="btn signup-btn">Sign up</a>
+      <a href="/login" class="btn login-btn">Login</a>
+    </div>
+  </div>
+
+  <!-- Image Section -->
+  <div class="image-section">
+    <img src="{{ url_for('static', filename='students.jpg') }}" alt="Students learning together" />
+  </div>
+
+  <!-- Collaborative Learning -->
+  <div class="section">
+    <div class="text">
+      <h2>Collaborative Learning Environment</h2>
+      <p>Join a global learning community. Our platform fosters collaboration, peer-to-peer learning, and meaningful knowledge exchange through immersive experiences.</p>
+      <div class="icon-row">
+        <span>4.9/5 Rating</span>
+        <span>Award Winning</span>
+      </div>
+    </div>
+    <div class="image">
+      <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998" alt="Collaborative Learning" />
+    </div>
+  </div>
+
+  <!-- Modern Learning -->
+  <div class="section">
+    <div class="image">
+      <img src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f" alt="Modern Learning" />
+    </div>
+    <div class="text">
+      <h2>Modern Learning Technology</h2>
+      <p>Experience AI-powered learning that adapts to your pace and style. Personalized recommendations help you progress faster and smarter in your academic journey.</p>
+      <div class="stats">
+        <div class="stat-box">
+          <h3>50K+</h3>
+          <p>Active Students</p>
+        </div>
+        <div class="stat-box">
+          <h3>1000+</h3>
+          <p>Expert Instructors</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Premium Resources -->
+  <div class="section">
+    <div class="text">
+      <h2>Premium Educational Resources</h2>
+      <p>Unlock access to a curated library of digital materials, advanced assessments, and collaborative tools that elevate your learning outcomes.</p>
+      <ul class="features-list">
+        <li>Interactive Study Materials</li>
+        <li>Collaborative Learning Tools</li>
+        <li>Certification Programs</li>
+      </ul>
+    </div>
+    <div class="image">
+      <img src="https://images.unsplash.com/photo-1517433456452-f9633a875f6f" alt="Educational Resources" />
+    </div>
+  </div>
+
+  <!-- Learning Path -->
+  <h2 class="section-title">Choose Your Learning Path</h2>
+
+  <section class="path-section">
+    <div class="path-card">
+      <div class="icon">🎓</div>
+      <h3>For Students</h3>
+      <p>Comprehensive learning tools designed for academic success and personal growth.</p>
+      <p class="desc">Access study materials, submit assignments, track progress, and engage with interactive learning tools.</p>
+      <a href="/student-login">Log in here →</a>
+    </div>
+
+    <div class="path-card">
+      <div class="icon">👨‍🏫</div>
+      <h3>For Higher Education</h3>
+      <p>Advanced learning ecosystem for universities and colleges with dual login system.</p>
+      <p class="desc">Complete solution for both students and instructors with advanced features and analytics.</p>
+      <a href="/higher-ed">Learn More →</a>
+    </div>
+
+    <div class="path-card">
+      <div class="icon">💼</div>
+      <h3>For Professionals</h3>
+      <p>Specialized training and certification programs for career advancement.</p>
+      <p class="desc">Professional development courses and certifications designed for working professionals.</p>
+      <a href="/professionals">Learn More →</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-column">
+      <h4>📘 LearnLMS</h4>
+      <p>Personalized learning with modern tools.<br>
+        From basics to mastery, LearnLMS guides you every step of your journey.</p>
+    </div>
+
+    <div class="footer-column">
+      <h4>Learning</h4>
+      <ul>
+        <li><a href="/beginner">Beginner Course</a></li>
+        <li><a href="/intermediate">Intermediate Path</a></li>
+        <li><a href="/advanced">Advanced Training</a></li>
+        <li><a href="/master">Master Class</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-column">
+      <h4>Resources</h4>
+      <ul>
+        <li><a href="/study">Study Material</a></li>
+        <li><a href="/videos">Video Tutorials</a></li>
+        <li><a href="/quiz">Practice Quizzes</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-column">
+      <h4>Community</h4>
+      <ul>
+        <li><a href="#">Support</a></li>
+        <li><a href="#">Help Center</a></li>
+        <li><a href="#">Contact Us</a></li>
+        <li><a href="#">Privacy Policy</a></li>
+      </ul>
+    </div>
+  </footer>
+
+</body>
+</html>

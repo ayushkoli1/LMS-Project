@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduTrack LMS - Student Dashboard</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background-color: #f5f7fa;
+      display: flex;
+    }
+
+    .sidebar {
+      width: 220px;
+      background-color: #fff;
+      border-right: 1px solid #ddd;
+      padding: 20px;
+      height: 100vh;
+      position: fixed;
+    }
+
+    .sidebar h2 {
+      color: #4e73df;
+      font-size: 20px;
+      margin-bottom: 30px;
+    }
+
+    .sidebar ul {
+      list-style: none;
+    }
+
+    .sidebar ul li {
+      margin: 20px 0;
+      font-size: 16px;
+      color: #333;
+      cursor: pointer;
+    }
+
+    .sidebar ul li:hover,
+    .sidebar ul li.active {
+      color: #4e73df;
+      font-weight: bold;
+    }
+
+    .main {
+      margin-left: 240px;
+      padding: 20px;
+      width: 100%;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header input[type="text"] {
+      width: 40%;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .welcome-box {
+      background: linear-gradient(90deg, #4e73df, #6610f2);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin: 20px 0;
+    }
+
+    .cards {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      flex: 1;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .section {
+      margin-bottom: 20px;
+    }
+
+    .section h3 {
+      margin-bottom: 10px;
+    }
+
+    .course-box {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .progress-bar {
+      height: 8px;
+      background-color: #e0e0e0;
+      border-radius: 6px;
+      margin-top: 10px;
+    }
+
+    .progress-fill {
+      height: 8px;
+      background-color: #4e73df;
+      border-radius: 6px;
+    }
+
+    .assignment, .quiz {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .label {
+      float: right;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: white;
+    }
+
+    .pending { background: #e74c3c; }
+    .in-progress { background: #f1c40f; }
+    .completed { background: #2ecc71; }
+
+    .quiz-score {
+      float: right;
+      background: #4e73df;
+      color: white;
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <h2>🎓 EduTrack LMS</h2>
+    <ul>
+      <li class="active">Dashboard</li>
+      <li>My Courses</li>
+      <li>Assignments</li>
+      <li>Quizzes</li>
+      <li>Progress</li>
+      <li>Attendance</li>
+      <li>Doubt Box</li>
+    </ul>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <input type="text" placeholder="Search courses, assignments...">
+      <div class="user-info">
+        🔔 📩 <strong>Alex Johnson</strong> (Student)
+      </div>
+    </div>
+
+    <div class="welcome-box">
+      <h2>Welcome back, Alex!</h2>
+      <p>Ready to continue your learning journey? You have 3 courses in progress.</p>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <h3>3</h3>
+        <p>Active Courses</p>
+      </div>
+      <div class="card">
+        <h3>2</h3>
+        <p>Pending Assignments</p>
+      </div>
+      <div class="card">
+        <h3>85%</h3>
+        <p>Attendance Rate</p>
+      </div>
+      <div class="card">
+        <h3>5</h3>
+        <p>Unread Messages</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>📘 My Courses</h3>
+
+      <div class="course-box">
+        <strong>Software</strong> <br>
+        Instructor: Mr.Rachit Lakhera <br>
+        📅 Today 2:00 PM
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 75%"></div>
+        </div>
+        <p>75% Complete</p>
+      </div>
+
+      <div class="course-box">
+        <strong>Computer Science Fundamentals</strong> <br>
+        Instructor: Prof. Johnson <br>
+        📅 Tomorrow 10:00 AM
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 60%"></div>
+        </div>
+        <p>60% Complete</p>
+      </div>
+
+      <div class="course-box">
+        <strong>Physics Laboratory</strong> <br>
+        Instructor: Mr.Rachit Lakhera <br>
+        📅 Friday 3:00 PM
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 90%"></div>
+        </div>
+        <p>90% Complete</p>
+      </div>
+    </div>
+
+    <div class="section" style="display: flex; gap: 20px;">
+      <div style="flex: 1;">
+        <h3>📝 Assignments</h3>
+
+        <div class="assignment">
+          <strong>Calculus Problem Set</strong><br>
+          Advanced Mathematics<br>
+          Due: Oct 25
+          <span class="label pending">pending</span>
+        </div>
+
+        <div class="assignment">
+          <strong>Programming Project</strong><br>
+          Computer Science<br>
+          Due: Oct 28
+          <span class="label in-progress">in-progress</span>
+        </div>
+
+        <div class="assignment">
+          <strong>Lab Report</strong><br>
+          Physics Laboratory<br>
+          Due: Nov 1
+          <span class="label completed">completed</span>
+        </div>
+      </div>
+
+      <div style="flex: 1;">
+        <h3>🧠 Recent Quizzes</h3>
+
+        <div class="quiz">
+          <strong>Linear Algebra Quiz</strong><br>
+          Advanced Mathematics
+          <span class="quiz-score">85%</span>
+        </div>
+
+        <div class="quiz">
+          <strong>Data Structures Quiz</strong><br>
+          Computer Science
+          <span class="quiz-score">92%</span>
+        </div>
+
+        <div class="quiz">
+          <strong>Mechanics Quiz</strong><br>
+          Physics Laboratory
+          <span class="quiz-score">78%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
