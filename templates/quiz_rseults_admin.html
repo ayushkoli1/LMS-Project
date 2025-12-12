@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Quiz Results{% endblock %}
+{% block content %}
+<h1>Quiz Results</h1>
+<p><a href="{{ url_for('export_quiz_results_csv') }}">Export CSV</a></p>
+<table>
+  <tr><th>Name</th><th>Email</th><th>Percentage</th><th>Level</th><th>Date</th></tr>
+  {% for r in records %}
+    <tr>
+      <td>{{ r.Name }}</td>
+      <td>{{ r.Email }}</td>
+      <td>{{ r.Percentage }}</td>
+      <td>{{ r.Level }}</td>
+      <td>{{ r.DateTime_str or '' }}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="5">No records.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

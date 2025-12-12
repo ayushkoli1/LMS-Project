@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Manage Doubts{% endblock %}
+{% block content %}
+<h1>Doubts / Queries</h1>
+<table>
+  <tr><th>Student</th><th>Email</th><th>Doubt</th><th>Time</th><th>Assigned</th><th>Actions</th></tr>
+  {% for d in doubts %}
+    <tr>
+      <td>{{ d.Name }}</td>
+      <td>{{ d.Email }}</td>
+      <td>{{ d.Doubt }}</td>
+      <td>{{ d.Timestamp_str or '' }}</td>
+      <td>{{ d.get('assigned_to','-') }}</td>
+      <td>
+        <form method="post" action="{{ url_for('assign_doubt', id=d._id) }}" style="display:inline">
+          <input name="instructor" placeholder="Instructor email/name" required>
+          <button type="submit">Assign</button>
+        </form>
+        <a href="{{ url_for('resolve_doubt', id=d._id) }}">Resolve</a>
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="6">No doubts.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

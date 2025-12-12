@@ -39,37 +39,109 @@ def contact():
 # =========================================================
 # AUTHENTICATION ROUTES (General LMS)
 # =========================================================
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
+@app.route('/')
+def home():
+    return redirect(url_for('login'))
 
-        if email in users and users[email] == password:
-            flash('Login successful!', 'success')
-            return redirect(url_for('dashboard'))
-        else:
-            flash('Invalid email or password', 'danger')
+@app.route('/signup_selection')
+def signup_selection():
+    return render_template('signup_selection.html')
 
-    return render_template('login.html')
-
-
+@app.route('/')
+def home():
+    return redirect(url_for('login'))
+@app.route('/signup_selection')
+def signup_selection():
+    return render_template('signup_selection.html')
+# ------------------------ Signup ------------------------
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
+        name = request.form['name'].strip()
+        email = request.form['email'].strip().lower()
+        password = request.form['password'].strip()
+        role = request.form['role'].strip().lower()
+        background = request.form.get('background', '').strip()
 
-        if email in users:
-            flash('User already exists!', 'danger')
-        else:
-            users[email] = password
-            flash('Signup successful! Please login.', 'success')
-            return redirect(url_for('login'))
+        # Check if user exists
+        if users_collection.find_one({'Email': email}):
+            return render_template('signup.html', error="Email already registered.")
+
+        # Add new user
+        new_user = {
+            "Name": name,
+            "Email": email,
+            "Password": password,
+            "Role": role,
+            "Background": background
+        }
+        users_collection.insert_one(new_user)
+        return redirect(url_for('login'))
 
     return render_template('signup.html')
+# ------------------------ Login (Unified for All Roles) with Case-Insensitive Role ------------------------
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form['username'].strip().lower()
+        password = request.form['password'].strip()
+        role = request.form['role'].strip().lower()
 
+        # Case-insensitive query
+        user = users_collection.find_one({
+            'Email': email,
+            'Password': password,
+            'Role': {"$regex": f"^{role}$", "$options": "i"}  # Case-insensitive
+        })
 
+        if user:
+            # Save session
+            session['user'] = user.get('Name', 'User')
+            session['email'] = user.get('Email')
+            session['role'] = user.get('Role').lower()   # normalize
+            session['background'] = user.get('Background', 'Non-IT')
+
+            # Redirect based on role
+            if session['role'] == 'admin':
+                return redirect(url_for('admin_dashboard'))
+            elif session['role'] == 'student':
+                return redirect(url_for('student_dashboard'))
+            elif session['role'] == 'instructor':
+                return redirect(url_for('instructor_dashboard'))
+            else:
+                return render_template('login.html', error="Unknown role type.")
+        else:
+            return render_template('login.html', error="Invalid Email / Password / Role.")
+
+    return render_template('login.html')
+
+# ------------------------ Forgot Password ------------------------
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], 'users.xlsx')
+    if request.method == 'POST':
+        email = request.form['email'].strip().lower()
+        new_password = request.form['new_password'].strip()
+
+        # CAPTCHA temporarily removed
+
+        if os.path.exists(file_path):
+            df = pd.read_excel(file_path)
+            df['Email'] = df['Email'].str.lower().str.strip()
+            if email in df['Email'].values:
+                df.loc[df['Email'] == email, 'Password'] = new_password
+                df.to_excel(file_path, index=False)
+                return redirect(url_for('login'))
+            else:
+                return render_template('forgot_password.html', error="Email not found.")
+        return "User data file not found."
+
+    return render_template('forgot_password.html')
+# ------------------------ Logout ------------------------
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
 @app.route('/dashboard')
 def dashboard():
     return "<h2>Welcome to your LMS Dashboard</h2>"

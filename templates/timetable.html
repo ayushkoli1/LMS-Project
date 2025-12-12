@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Timetable</title>
+    <style>
+        body { background-color: #f4f6f9; font-family: 'Poppins', sans-serif; margin: 0; }
+        .container { max-width: 1000px; margin: 40px auto; background: white; border-radius: 10px; padding: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { color: #2a4d9b; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border-bottom: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #2a4d9b; color: white; }
+        input, select { padding: 8px; margin: 8px 0; width: 100%; border-radius: 6px; border: 1px solid #ccc; }
+        button { background: #2a4d9b; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
+        button:hover { background: #1e3573; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Add New Timetable Entry</h2>
+        <form method="POST">
+            <input type="text" name="course_name" placeholder="Course Name" required>
+            <input type="text" name="instructor_name" placeholder="Instructor Name" required>
+            <select name="day_of_week" required>
+                <option value="">Select Day</option>
+                <option>Monday</option>
+                <option>Tuesday</option>
+                <option>Wednesday</option>
+                <option>Thursday</option>
+                <option>Friday</option>
+            </select>
+            <input type="time" name="start_time" required>
+            <input type="time" name="end_time" required>
+            <input type="text" name="location" placeholder="Location" required>
+            <button type="submit">Add Timetable</button>
+        </form>
+
+        <h2>Existing Timetable</h2>
+        <table>
+            <tr><th>Course</th><th>Instructor</th><th>Day</th><th>Start</th><th>End</th><th>Location</th></tr>
+            {% for row in timetable %}
+            <tr>
+                <td>{{ row.course_name }}</td>
+                <td>{{ row.instructor_name }}</td>
+                <td>{{ row.day_of_week }}</td>
+                <td>{{ row.start_time }}</td>
+                <td>{{ row.end_time }}</td>
+                <td>{{ row.location }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</body>
+</html>

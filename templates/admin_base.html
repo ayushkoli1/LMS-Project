@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ title if title else "Admin Dashboard" }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+</head>
+<body>
+  <div class="sidebar">
+    <h2>EduLink Admin</h2>
+    <ul>
+      <li><a href="{{ url_for('admin_dashboard') }}">🏠 Dashboard</a></li>
+      <li><a href="{{ url_for('manage_users') }}">👥 Users</a></li>
+      <li><a href="{{ url_for('manage_courses') }}">📘 Courses</a></li>
+      <li><a href="{{ url_for('manage_assignments') }}">📝 Assignments</a></li>
+      <li><a href="{{ url_for('manage_announcements') }}">📢 Announcements</a></li>
+      <li><a href="{{ url_for('reports') }}">📊 Reports</a></li>
+      <li><a href="{{ url_for('access_dashboards') }}">🔄 Switch Dashboard</a></li>
+      <li><a href="{{ url_for('logout') }}">🚪 Logout</a></li>
+    </ul>
+  </div>
+
+  <div class="content">
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

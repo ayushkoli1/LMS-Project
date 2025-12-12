@@ -1,0 +1,27 @@
+{% extends 'admin_base.html' %}
+{% block content %}
+<h2 class="text-center mt-3">Edit Assignment</h2>
+<form method="POST" class="w-50 mx-auto mt-4">
+    <div class="mb-3">
+        <label>Title:</label>
+        <input type="text" name="title" value="{{ assignment.title }}" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label>Description:</label>
+        <textarea name="description" class="form-control" required>{{ assignment.description }}</textarea>
+    </div>
+    <div class="mb-3">
+        <label>Course:</label>
+        <input type="text" name="course" value="{{ assignment.course }}" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label>Due Date:</label>
+        <input type="date" name="due_date" value="{{ assignment.due_date }}" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label>Uploaded By:</label>
+        <input type="email" name="uploaded_by" value="{{ assignment.uploaded_by }}" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Update Assignment</button>
+</form>
+{% endblock %}

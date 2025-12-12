@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}Manage Users{% endblock %}
+
+{% block content %}
+
+<style>
+    body {
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .glass-card {
+        padding: 20px;
+        border-radius: 12px;
+        background: #ffffff;
+        box-shadow: 0px 4px 15px rgba(0,0,0,0.1);
+    }
+
+    /* Responsive table container */
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+        margin-top: 10px;
+    }
+
+    table {
+        width: 100%;
+        min-width: 850px; /* prevents overlapping */
+        border-collapse: collapse;
+        font-size: 15px;
+    }
+
+    th, td {
+        text-align: left;
+        padding: 12px 15px;
+        white-space: nowrap;
+    }
+
+    th {
+        background: #007bff;
+        color: white;
+    }
+
+    tr:nth-child(even) {
+        background: #f7f7f7;
+    }
+
+    /* ACTION BUTTONS */
+    .action-buttons {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;   /* prevents overlap */
+    }
+
+    .btn {
+        padding: 6px 10px;
+        border-radius: 6px;
+        text-decoration: none;
+        color: white;
+        font-size: 13px;
+        display: inline-block;
+    }
+
+    .btn-edit { background: #ffc107; }
+    .btn-delete { background: #dc3545; }
+    .btn-open { background: #17a2b8; }
+
+    .badge {
+        padding: 6px 10px;
+        border-radius: 6px;
+        color: white;
+        font-size: 13px;
+    }
+
+    .badge-admin { background: #007bff; }
+    .badge-student { background: #28a745; }
+    .badge-instructor { background: #e67e22; }
+
+    .btn-add {
+        background: #007bff;
+        padding: 8px 12px;
+        border-radius: 8px;
+        color: white;
+        text-decoration: none;
+        float: right;
+        margin-bottom: 15px;
+    }
+
+    /* Search box */
+    .search-box input {
+        padding: 10px;
+        width: 250px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        margin-bottom: 10px;
+    }
+</style>
+
+<div class="glass-card">
+
+    <h2 style="color:#007bff;">Manage Users</h2>
+
+    <a href="{{ url_for('add_user') }}" class="btn-add">+ Add User</a>
+
+    <form method="GET" action="{{ url_for('manage_users') }}" style="display:flex; gap:10px; align-items:center;">
+    <input type="text" name="search"
+           placeholder="Search by email..."
+           value="{{ request.args.get('search','') }}"
+           style="padding:10px;width:250px;border-radius:8px;border:1px solid #ccc;">
+
+    <button type="submit"
+            style="padding:10px 15px;background:#007bff;color:white;border:none;border-radius:6px;cursor:pointer;">
+        Search
+    </button>
+</form>
+
+    <div class="table-container">
+        <table>
+            <tr>
+                <th style="width: 180px;">Name</th>
+                <th style="width: 260px;">Email</th>
+                <th style="width: 120px;">Role</th>
+                <th style="width: 280px;">Actions</th>
+            </tr>
+
+            {% for u in users %}
+            <tr>
+                <td>{{ u.Name }}</td>
+                <td>{{ u.Email }}</td>
+
+                <td>
+                    {% if u.Role == "admin" %}
+                        <span class="badge badge-admin">Admin</span>
+                    {% elif u.Role == "student" %}
+                        <span class="badge badge-student">Student</span>
+                    {% else %}
+                        <span class="badge badge-instructor">Instructor</span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    <div class="action-buttons">
+                        <a href="{{ url_for('edit_user', user_id=u._id) }}" class="btn btn-edit">✏ Edit</a>
+                        <a href="{{ url_for('delete_user', user_id=u._id) }}" class="btn btn-delete">🗑 Delete</a>
+                        <a href="{{ url_for('admin_open_dashboard', user_id=u._id) }}" class="btn btn-open">📂 Open Dashboard</a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Profile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            padding: 40px;
+        }
+        .profile-box {
+            background-color: white;
+            max-width: 520px;
+            margin: auto;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 25px rgba(0,0,0,0.12);
+        }
+        h2 { text-align: center; color: #2d3436; margin-bottom: 20px; }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0 15px 0;
+            border-radius: 6px;
+            border: 1px solid #b2bec3;
+            font-size: 15px;
+        }
+
+        textarea { resize: none; height: 80px; }
+
+        .btn {
+            background-color: #0984e3;
+            color: white;
+            padding: 12px;
+            width: 100%;
+            border: none;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: #0984e3;
+            text-decoration: none;
+        }
+
+        .password-box {
+            position: relative;
+        }
+        .eye-icon {
+            position: absolute;
+            right: 10px;
+            top: 14px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="profile-box">
+    <h2>👤 My Profile</h2>
+
+    <form method="POST">
+
+        <label>Full Name</label>
+        <input type="text" name="name" value="{{ user.Name }}" required>
+
+        <label>Email (Read Only)</label>
+        <input type="email" value="{{ user.Email }}" readonly>
+
+        <label>Phone Number</label>
+        <input type="text" name="phone" value="{{ user.Phone }}">
+
+        <label>Gender</label>
+        <select name="gender">
+            <option value="Male" {% if user.Gender == 'Male' %}selected{% endif %}>Male</option>
+            <option value="Female" {% if user.Gender == 'Female' %}selected{% endif %}>Female</option>
+            <option value="Other" {% if user.Gender == 'Other' %}selected{% endif %}>Other</option>
+        </select>
+
+        <label>Background</label>
+        <select name="background" required>
+            <option value="IT" {% if user.Background == 'IT' %}selected{% endif %}>IT</option>
+            <option value="Non-IT" {% if user.Background == 'Non-IT' %}selected{% endif %}>Non-IT</option>
+        </select>
+
+        <label>Password</label>
+        <div class="password-box">
+            <input type="password" name="password" id="passwordField">
+            <span class="eye-icon" onclick="togglePassword()">👁</span>
+        </div>
+
+        <label>About / Bio</label>
+        <textarea name="bio">{{ user.Bio }}</textarea>
+
+        <button class="btn" type="submit">Update Profile</button>
+    </form>
+
+    <a class="back-link" href="{{ url_for('student_dashboard') }}">← Back to Dashboard</a>
+</div>
+
+<script>
+    function togglePassword() {
+        let field = document.getElementById("passwordField");
+        field.type = field.type === "password" ? "text" : "password";
+    }
+</script>
+
+</body>
+</html>

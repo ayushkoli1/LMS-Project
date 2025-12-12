@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} Course{% endblock %}
+
+{% block content %}
+    <h1>{{ action }} Course</h1>
+    
+    <div class="card" style="width: 400px; margin: auto;">
+        <form method="POST">
+            <label for="CourseName">Course Name:</label><br>
+            <input type="text" id="CourseName" name="CourseName" value="{{ course.CourseName | default('') }}" required style="width: 95%; padding: 8px; margin-bottom: 10px;"><br>
+            
+            <label for="Instructor">Instructor:</label><br>
+            <input type="text" id="Instructor" name="Instructor" value="{{ course.Instructor | default('') }}" required style="width: 95%; padding: 8px; margin-bottom: 10px;"><br>
+
+            <label for="Duration">Duration:</label><br>
+            <input type="text" id="Duration" name="Duration" value="{{ course.Duration | default('') }}" required style="width: 95%; padding: 8px; margin-bottom: 10px;"><br>
+            
+            <label for="Description">Description:</label><br>
+            <textarea id="Description" name="Description" required style="width: 95%; padding: 8px; margin-bottom: 15px;">{{ course.Description | default('') }}</textarea><br>
+
+            <button type="submit" style="width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer;">{{ action }} Course</button>
+        </form>
+    </div>
+{% endblock %}

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Notifications</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f8f9fa; }
+        .container { width: 80%; margin: 40px auto; }
+        .notif-card {
+            background: white; padding: 15px; border-radius: 8px;
+            margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        h2 { color: #333; }
+        small { color: #777; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🔔 Notifications</h2>
+        {% for n in notifications %}
+            <div class="notif-card">
+                <strong>{{ n.title }}</strong>
+                <p>{{ n.message }}</p>
+                <small>{{ n.time }}</small>
+            </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

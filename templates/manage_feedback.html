@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Manage Feedback{% endblock %}
+{% block content %}
+<h1>Feedback</h1>
+<table>
+  <tr><th>Name</th><th>Email</th><th>Message</th><th>Date</th><th>Action</th></tr>
+  {% for f in feedbacks %}
+    <tr>
+      <td>{{ f.Name }}</td>
+      <td>{{ f.Email }}</td>
+      <td>{{ f.Message }}</td>
+      <td>{{ f.DateTime_str or '' }}</td>
+      <td><a href="{{ url_for('delete_feedback', id=f._id) }}" onclick="return confirm('Delete this feedback?')">Delete</a></td>
+    </tr>
+  {% else %}
+    <tr><td colspan="5">No feedback yet.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

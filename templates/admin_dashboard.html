@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+    <h1 style="text-align:center; margin-bottom: 30px;">Welcome, {{ user }} 👋 (Admin)</h1>
+
+    <h2 style="color:#0056b3; margin-bottom: 20px;">System Overview</h2>
+
+    <!-- Stat cards grid -->
+    <div class="stats-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:20px; margin-bottom:30px;">
+        <div class="stat-card" style="background:#007bff; color:white; padding:20px; border-radius:10px; text-align:center; box-shadow:0 3px 8px rgba(0,0,0,0.15);">
+            <h3>Total Users</h3>
+            <p style="font-size:2em; font-weight:bold;">{{ stats.total_users }}</p>
+        </div>
+        <div class="stat-card" style="background:#17a2b8; color:white; padding:20px; border-radius:10px; text-align:center; box-shadow:0 3px 8px rgba(0,0,0,0.15);">
+            <h3>Total Courses</h3>
+            <p style="font-size:2em; font-weight:bold;">{{ stats.total_courses }}</p>
+        </div>
+        <div class="stat-card" style="background:#28a745; color:white; padding:20px; border-radius:10px; text-align:center; box-shadow:0 3px 8px rgba(0,0,0,0.15);">
+            <h3>Total Assignments</h3>
+            <p style="font-size:2em; font-weight:bold;">{{ stats.total_assignments }}</p>
+        </div>
+        <div class="stat-card" style="background:#ffc107; color:#333; padding:20px; border-radius:10px; text-align:center; box-shadow:0 3px 8px rgba(0,0,0,0.15);">
+            <h3>Total Announcements</h3>
+            <p style="font-size:2em; font-weight:bold;">{{ stats.total_announcements }}</p>
+        </div>
+    </div>
+
+    <!-- Two-column grid for recent data -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:25px;">
+        <!-- Recent Users -->
+        <div class="card" style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+            <h2 style="color:#0056b3;">Recent Users</h2>
+            <table>
+                <tr style="background-color:#007bff; color:white;">
+                    <th>Name</th>
+                    <th>Role</th>
+                    <th>Email</th>
+                </tr>
+                {% for user in recent_users %}
+                    <tr>
+                        <td>{{ user.Name }}</td>
+                        <td>{{ user.Role }}</td>
+                        <td>{{ user.Email }}</td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="3" style="text-align:center; padding:10px;">No recent users.</td></tr>
+                {% endfor %}
+            </table>
+            <a href="{{ url_for('manage_users') }}" class="btn" style="display:inline-block; margin-top:15px;">View All Users →</a>
+        </div>
+
+        <!-- Recent Courses -->
+        <div class="card" style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+            <h2 style="color:#0056b3;">Recent Courses</h2>
+            <table>
+                <tr style="background-color:#007bff; color:white;">
+                    <th>Course</th>
+                    <th>Instructor</th>
+                    <th>Duration</th>
+                </tr>
+                {% for course in recent_courses %}
+                    <tr>
+                        <td>{{ course.CourseName }}</td>
+                        <td>{{ course.Instructor }}</td>
+                        <td>{{ course.Duration }}</td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="3" style="text-align:center; padding:10px;">No recent courses.</td></tr>
+                {% endfor %}
+            </table>
+            <a href="{{ url_for('manage_courses') }}" class="btn" style="display:inline-block; margin-top:15px;">View All Courses →</a>
+        </div>
+    </div>
+{% endblock %}

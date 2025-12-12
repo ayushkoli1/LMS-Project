@@ -1,0 +1,241 @@
+{% extends "student_base.html" %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Leaderboard</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #e0e7ff, #f0f9ff);
+            margin: 0;
+        }
+        .leaderboard-container {
+            max-width: 1000px;
+            margin: 80px auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            padding: 30px;
+            animation: fadeIn 1s ease-in-out;
+        }
+        h2 {
+            text-align: center;
+            color: #0b5ed7;
+            margin-bottom: 25px;
+            font-weight: 700;
+        }
+
+        /* ---- Animated rank banner ---- */
+        .your-rank {
+            position: fixed;
+            top: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(90deg, #007bff, #0056b3);
+            color: white;
+            font-weight: 600;
+            font-size: 1.1em;
+            padding: 12px 25px;
+            border-radius: 50px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            animation: slideDown 1.5s ease forwards, pulseGlow 2.5s infinite alternate;
+            z-index: 1000;
+        }
+
+        @keyframes slideDown {
+            0% { top: -80px; opacity: 0; }
+            60% { top: 30px; opacity: 1; }
+            100% { top: 20px; }
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 5px rgba(0, 91, 255, 0.5); }
+            100% { box-shadow: 0 0 25px rgba(0, 91, 255, 0.9); }
+        }
+
+        /* ---- Podium ---- */
+        .podium {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .podium-card {
+            width: 180px;
+            background-color: white;
+            border-radius: 12px;
+            text-align: center;
+            padding: 18px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .podium-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+        .podium-card h3 {
+            margin: 10px 0 5px;
+            color: #0b5ed7;
+            font-weight: 600;
+        }
+        .podium-card p {
+            margin: 2px 0;
+            color: #555;
+        }
+        .rank-badge {
+            font-size: 2.5em;
+            animation: bounce 2s infinite;
+        }
+
+        /* Animated glows */
+        .gold {
+            color: gold;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            border: 2px solid gold;
+            animation: glowGold 3s infinite alternate;
+        }
+        .silver {
+            color: silver;
+            box-shadow: 0 0 20px rgba(192, 192, 192, 0.8);
+            border: 2px solid silver;
+            animation: glowSilver 3s infinite alternate;
+        }
+        .bronze {
+            color: #cd7f32;
+            box-shadow: 0 0 20px rgba(205, 127, 50, 0.8);
+            border: 2px solid #cd7f32;
+            animation: glowBronze 3s infinite alternate;
+        }
+
+        @keyframes glowGold {
+            0% { box-shadow: 0 0 10px rgba(255,215,0,0.6); }
+            100% { box-shadow: 0 0 25px rgba(255,215,0,1); }
+        }
+        @keyframes glowSilver {
+            0% { box-shadow: 0 0 10px rgba(192,192,192,0.6); }
+            100% { box-shadow: 0 0 25px rgba(192,192,192,1); }
+        }
+        @keyframes glowBronze {
+            0% { box-shadow: 0 0 10px rgba(205,127,50,0.6); }
+            100% { box-shadow: 0 0 25px rgba(205,127,50,1); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        /* ---- Table ---- */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #0b5ed7;
+            color: white;
+            font-weight: 600;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .highlight {
+            background-color: #dbeafe !important;
+            font-weight: 600;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    {% if your_rank %}
+        <div class="your-rank">🏅 You are ranked <strong>#{{ your_rank }}</strong> out of {{ leaderboard|length }} students</div>
+    {% endif %}
+
+    <div class="leaderboard-container">
+        <h2>🏆 Leaderboard</h2>
+
+        {% if top_three %}
+        <div class="podium">
+            {% if top_three|length > 1 %}
+            <div class="podium-card silver">
+                <div class="rank-badge">🥈</div>
+                <h3>{{ top_three[1].Name }}</h3>
+                <p>{{ "%.2f"|format(top_three[1].Percentage) }}%</p>
+            </div>
+            {% endif %}
+            {% if top_three|length > 0 %}
+            <div class="podium-card gold" style="transform: scale(1.1);">
+                <div class="rank-badge">🥇</div>
+                <h3>{{ top_three[0].Name }}</h3>
+                <p>{{ "%.2f"|format(top_three[0].Percentage) }}%</p>
+            </div>
+            {% endif %}
+            {% if top_three|length > 2 %}
+            <div class="podium-card bronze">
+                <div class="rank-badge">🥉</div>
+                <h3>{{ top_three[2].Name }}</h3>
+                <p>{{ "%.2f"|format(top_three[2].Percentage) }}%</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if leaderboard %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Score</th>
+                    <th>Total</th>
+                    <th>Percentage</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in leaderboard %}
+                    <tr class="{% if student.Email == current_user_email %}highlight{% endif %}">
+                        <td>
+                            {% if loop.index == 1 %}
+                                🥇
+                            {% elif loop.index == 2 %}
+                                🥈
+                            {% elif loop.index == 3 %}
+                                🥉
+                            {% else %}
+                                {{ loop.index }}
+                            {% endif %}
+                        </td>
+                        <td>{{ student.Name }}</td>
+                        <td>{{ student.Email }}</td>
+                        <td>{{ student.Score }}</td>
+                        <td>{{ student.Total }}</td>
+                        <td>{{ "%.2f"|format(student.Percentage) }}%</td>
+                        <td>{{ student.Date or 'N/A' }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+            <p style="text-align:center; color:#555;">No leaderboard data available yet.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
+{% endblock %}

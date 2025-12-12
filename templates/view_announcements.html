@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Announcements</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 50px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        h2 {
+            text-align: center;
+            color: #0b5ed7;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+        .announcement {
+            background-color: #f4f9ff;
+            border-left: 6px solid #0b5ed7;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .announcement h3 {
+            margin: 0 0 8px;
+            color: #0b3d91;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .message {
+            margin-top: 8px;
+            color: #333;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        .meta {
+            color: #555;
+            font-size: 0.9em;
+            margin-top: 10px;
+            border-top: 1px solid #ddd;
+            padding-top: 6px;
+        }
+        .back-btn {
+            text-align: center;
+            display: block;
+            background-color: #0b5ed7;
+            color: white;
+            padding: 10px 18px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 25px auto 0;
+            width: fit-content;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+        }
+        .back-btn:hover {
+            background-color: #084298;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>📢 Announcements</h2>
+        {% if announcements %}
+            {% for note in announcements %}
+                <div class="announcement">
+                    <h3>{{ note.title }}</h3>
+                    <p class="message">{{ note.message }}</p>
+                    <div class="meta">
+                        <strong>Posted by:</strong> {{ note.Posted_by }} | 
+                        <strong>Date:</strong> {{ note.Date }}
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No announcements yet.</p>
+        {% endif %}
+        <a href="{{ url_for('student_dashboard') }}" class="back-btn"> Back to Dashboard</a>
+    </div>
+</body>
+</html>

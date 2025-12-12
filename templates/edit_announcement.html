@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Edit Announcement{% endblock %}
+
+{% block content %}
+<div class="edit-container">
+    <h1>✏ Edit Announcement</h1>
+
+    <form method="POST">
+        <textarea name="message" required>{{ announcement.message }}</textarea><br>
+        <button type="submit" class="btn btn-primary">Update</button>
+        <a href="{{ url_for('announcements') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+
+<style>
+.edit-container {
+    max-width: 700px;
+    margin: 40px auto;
+    background: white;
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+textarea {
+    width: 100%;
+    height: 100px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+.btn-secondary {
+    background-color: gray;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 6px;
+    text-decoration: none;
+}
+</style>
+{% endblock %}

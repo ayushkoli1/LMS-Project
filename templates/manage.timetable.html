@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Manage Timetable{% endblock %}
+{% block content %}
+<h1>Timetable</h1>
+
+<div class="card">
+  <form method="POST">
+    <input name="course_name" placeholder="Course name" required>
+    <input name="instructor_name" placeholder="Instructor name" required>
+    <select name="day_of_week">
+      <option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option>
+    </select>
+    <input name="start_time" placeholder="09:00">
+    <input name="end_time" placeholder="10:00">
+    <input name="location" placeholder="Room / Link">
+    <button type="submit">Add Entry</button>
+  </form>
+</div>
+
+<table>
+  <tr><th>Course</th><th>Instructor</th><th>Day</th><th>Time</th><th>Location</th><th>Action</th></tr>
+  {% for e in entries %}
+    <tr>
+      <td>{{ e.course_name }}</td>
+      <td>{{ e.instructor_name }}</td>
+      <td>{{ e.day_of_week }}</td>
+      <td>{{ e.start_time }} - {{ e.end_time }}</td>
+      <td>{{ e.location }}</td>
+      <td><a href="{{ url_for('delete_timetable', id=e._id) }}" onclick="return confirm('Delete?')">Delete</a></td>
+    </tr>
+  {% else %}
+    <tr><td colspan="6">No timetable entries.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}
