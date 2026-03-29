@@ -4,149 +4,315 @@
 {% block content %}
 
 <style>
+    /* 🎨 Monochromatic Theme: Primary Blue (#007bff) and Neutrals */
+    :root {
+        --primary-blue: #007bff;
+        --dark-blue: #0056d2;
+        --light-blue: #f0f4f8; /* Very light, cool gray/blue */
+        --border-blue: #c9d6e4; /* Used for borders on muted elements */
+        --light-gray-blue: #e9f0ff; 
+        --neutral-bg: #f4f7fb;
+        --glass-bg: rgba(255, 255, 255, 0.95);
+        --glass-shadow: 0 10px 30px rgba(0,0,0,0.08); 
+        --transition-time: 0.3s;
+        --danger-red: #dc3545; 
+        --danger-red-hover: #c82333;
+    }
+
     body {
         font-family: 'Poppins', sans-serif;
-    }
-
-    .glass-card {
+        background: var(--neutral-bg);
         padding: 20px;
-        border-radius: 12px;
-        background: #ffffff;
-        box-shadow: 0px 4px 15px rgba(0,0,0,0.1);
     }
 
-    /* Responsive table container */
+    /* --- General Card & Header --- */
+    .glass-card {
+        padding: 30px;
+        border-radius: 20px;
+        background: var(--glass-bg);
+        box-shadow: var(--glass-shadow);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        margin: auto;
+        max-width: 1200px;
+    }
+    
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #ddd;
+    }
+
+    h2 {
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        color: var(--dark-blue); 
+        margin: 0;
+        font-size: 1.8rem;
+    }
+    
+    .user-count {
+        background: var(--primary-blue);
+        color: white;
+        padding: 8px 15px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    /* --- Controls (Search & Add) --- */
+    .controls-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .search-box {
+        flex-grow: 1;
+        display: flex;
+        gap: 10px;
+        max-width: 450px;
+    }
+
+    .search-box input {
+        padding: 12px;
+        flex-grow: 1;
+        border-radius: 12px;
+        border: 2px solid #ccc;
+        transition: var(--transition-time);
+        font-size: 1rem;
+    }
+    .search-box input:focus {
+        border-color: var(--primary-blue);
+        box-shadow: 0px 0px 8px rgba(0,123,255,0.3);
+        outline: none;
+    }
+
+    /* Primary Blue Buttons */
+    .btn-search, .btn-add {
+        padding: 12px 20px;
+        border-radius: 12px;
+        background: var(--primary-blue);
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: var(--transition-time);
+        font-weight: 600;
+        text-decoration: none;
+        box-shadow: 0 4px 10px rgba(0,123,255,0.3);
+    }
+    .btn-search:hover, .btn-add:hover {
+        background: var(--dark-blue);
+        box-shadow: 0 6px 15px rgba(0,123,255,0.4);
+        transform: translateY(-2px);
+    }
+
+    /* --- Table --- */
     .table-container {
-        width: 100%;
         overflow-x: auto;
-        margin-top: 10px;
     }
 
     table {
         width: 100%;
-        min-width: 850px; /* prevents overlapping */
-        border-collapse: collapse;
-        font-size: 15px;
-    }
-
-    th, td {
-        text-align: left;
-        padding: 12px 15px;
-        white-space: nowrap;
+        min-width: 950px;
+        border-collapse: separate;
+        border-spacing: 0 12px;
     }
 
     th {
-        background: #007bff;
+        background: var(--primary-blue);
         color: white;
+        padding: 16px;
+        text-align: left;
+        font-weight: 600;
+        border: none;
+    }
+    
+    th:first-child { border-top-left-radius: 10px; border-bottom-left-radius: 10px; }
+    th:last-child { border-top-right-radius: 10px; border-bottom-right-radius: 10px; }
+
+
+    td {
+        background: #ffffff;
+        padding: 16px;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        vertical-align: middle;
     }
 
-    tr:nth-child(even) {
-        background: #f7f7f7;
+    tr:hover td {
+        background: var(--light-gray-blue);
+        transform: scale(1.005);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
 
-    /* ACTION BUTTONS */
-    .action-buttons {
-        display: flex;
-        gap: 6px;
-        flex-wrap: wrap;   /* prevents overlap */
-    }
-
-    .btn {
-        padding: 6px 10px;
-        border-radius: 6px;
-        text-decoration: none;
-        color: white;
-        font-size: 13px;
+    /* --- Role Badges --- */
+    .badge {
+        padding: 8px 12px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
         display: inline-block;
     }
 
-    .btn-edit { background: #ffc107; }
-    .btn-delete { background: #dc3545; }
-    .btn-open { background: #17a2b8; }
-
-    .badge {
-        padding: 6px 10px;
-        border-radius: 6px;
-        color: white;
-        font-size: 13px;
+    /* Admin - Primary Blue (High contrast) */
+    .badge-admin { 
+        background: var(--primary-blue); 
+        color: white; 
+    }
+    
+    /* Student/Instructor - Muted Blue/Gray Background with Primary Blue Text (Low contrast) */
+    .badge-student, .badge-instructor { 
+        background: var(--light-blue); 
+        color: var(--dark-blue); 
+        border: 1px solid var(--border-blue);
     }
 
-    .badge-admin { background: #007bff; }
-    .badge-student { background: #28a745; }
-    .badge-instructor { background: #e67e22; }
+    /* --- Action Buttons --- */
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
 
-    .btn-add {
-        background: #007bff;
+    .btn {
         padding: 8px 12px;
-        border-radius: 8px;
-        color: white;
+        border-radius: 10px;
+        font-size: 14px;
         text-decoration: none;
-        float: right;
-        margin-bottom: 15px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+        transition: var(--transition-time);
+        font-weight: 500;
     }
 
-    /* Search box */
-    .search-box input {
-        padding: 10px;
-        width: 250px;
-        border-radius: 8px;
-        border: 1px solid #ccc;
-        margin-bottom: 10px;
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 5px 12px rgba(0,0,0,0.15);
     }
+
+    /* Profile / Dashboard - MATCHES Muted Badge Style */
+    .btn-profile, .btn-dashboard { 
+        background: var(--light-blue); /* Same as student/instructor badge background */
+        color: var(--dark-blue); /* Same as badge text color */
+        border: 1px solid var(--border-blue); /* Same as badge border */
+        box-shadow: none;
+    }
+    .btn-profile:hover, .btn-dashboard:hover { 
+        background: var(--light-gray-blue); /* Lighter hover state */
+        border-color: var(--primary-blue);
+    }
+    
+    /* Edit Action - Retain light gray background, blue border */
+    .btn-edit { 
+        background: #f8f9fa; 
+        color: var(--primary-blue); 
+        border: 1px solid var(--primary-blue);
+        box-shadow: none; 
+    }
+    .btn-edit:hover { 
+        background: var(--light-gray-blue); 
+        color: var(--dark-blue);
+        border-color: var(--dark-blue);
+    }
+    
+    /* Delete Action - Retained subtle red for UX safety */
+    .btn-delete { 
+        background: var(--danger-red); 
+        color: white;
+    }
+    .btn-delete:hover { 
+        background: var(--danger-red-hover); 
+    }
+
+    /* --- Responsiveness --- */
+    @media (max-width: 768px) {
+        .card-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+        .controls-bar { flex-direction: column; align-items: stretch; }
+        .search-box { max-width: 100%; }
+        .btn-add { text-align: center; }
+    }
+
 </style>
 
 <div class="glass-card">
 
-    <h2 style="color:#007bff;">Manage Users</h2>
+    <div class="card-header">
+        <h2>👤 User Management Panel</h2>
+        <span class="user-count">Total Users: <strong>{{ users|length if users is defined else 0 }}</strong></span>
+    </div>
+    
+    <div class="controls-bar">
+        <form method="GET" action="{{ url_for('manage_users') }}" class="search-box">
+            <input type="text" name="search" placeholder="Search by name or email..."
+                    value="{{ request.args.get('search','') }}">
+            <button type="submit" class="btn-search">🔎 Search</button>
+        </form>
 
-    <a href="{{ url_for('add_user') }}" class="btn-add">+ Add User</a>
-
-    <form method="GET" action="{{ url_for('manage_users') }}" style="display:flex; gap:10px; align-items:center;">
-    <input type="text" name="search"
-           placeholder="Search by email..."
-           value="{{ request.args.get('search','') }}"
-           style="padding:10px;width:250px;border-radius:8px;border:1px solid #ccc;">
-
-    <button type="submit"
-            style="padding:10px 15px;background:#007bff;color:white;border:none;border-radius:6px;cursor:pointer;">
-        Search
-    </button>
-</form>
+        <a href="{{ url_for('add_user') }}" class="btn-add">✨ Add New User</a>
+    </div>
 
     <div class="table-container">
         <table>
-            <tr>
-                <th style="width: 180px;">Name</th>
-                <th style="width: 260px;">Email</th>
-                <th style="width: 120px;">Role</th>
-                <th style="width: 280px;">Actions</th>
-            </tr>
+            <thead>
+                <tr>
+                    <th>Full Name</th>
+                    <th>Email Address</th>
+                    <th>Role</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td>{{ u.Name }}</td>
+                    <td>{{ u.Email }}</td>
 
-            {% for u in users %}
-            <tr>
-                <td>{{ u.Name }}</td>
-                <td>{{ u.Email }}</td>
+                    <td>
+                        {% if u.Role == "admin" %}
+                            <span class="badge badge-admin">👑 Admin</span>
+                        {% elif u.Role == "student" %}
+                            <span class="badge badge-student">🎓 Student</span>
+                        {% else %}
+                            <span class="badge badge-instructor">👨‍🏫 Instructor</span>
+                        {% endif %}
+                    </td>
 
-                <td>
-                    {% if u.Role == "admin" %}
-                        <span class="badge badge-admin">Admin</span>
-                    {% elif u.Role == "student" %}
-                        <span class="badge badge-student">Student</span>
-                    {% else %}
-                        <span class="badge badge-instructor">Instructor</span>
-                    {% endif %}
-                </td>
+                    <td>
+                        <div class="action-buttons">
 
-                <td>
-                    <div class="action-buttons">
-                        <a href="{{ url_for('edit_user', user_id=u._id) }}" class="btn btn-edit">✏ Edit</a>
-                        <a href="{{ url_for('delete_user', user_id=u._id) }}" class="btn btn-delete">🗑 Delete</a>
-                        <a href="{{ url_for('admin_open_dashboard', user_id=u._id) }}" class="btn btn-open">📂 Open Dashboard</a>
-                    </div>
-                </td>
-            </tr>
-            {% endfor %}
+                            {% if u.Role == "student" or u.Role == "instructor" %}
+                                <a href="{{ url_for('admin_view_student_profile', email=u.Email) if u.Role == 'student' else url_for('admin_view_instructor_profile', email=u.Email) }}"
+                                   class="btn btn-profile">👀 Profile</a>
+                            {% endif %}
+
+                            <a href="{{ url_for('edit_user', user_id=u._id) }}" class="btn btn-edit">✏️ Edit</a>
+                            
+                            <a href="{{ url_for('admin_view_user_dashboard', email=u.Email) }}" class="btn btn-dashboard">📊 Dashboard</a>
+
+                            <a href="{{ url_for('delete_user', user_id=u._id) }}" class="btn btn-delete">🗑️ Delete</a>
+
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
+        
+        {% if not users %}
+        <p style="text-align:center; padding: 20px; color:#555; background: #fff; border-radius: 10px; margin-top: 15px;">
+            No users found matching the search criteria.
+        </p>
+        {% endif %}
+
     </div>
 
 </div>

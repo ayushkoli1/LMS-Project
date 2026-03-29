@@ -1,18 +1,32 @@
 from flask import Flask, request, redirect, url_for, render_template, session, send_file, send_from_directory
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 from pymongo import MongoClient
 import pandas as pd
 from bson.objectid import ObjectId
 from flask import  flash
 import os
-from werkzeug.utils import secure_filename
+import smtplib
+from email.message import EmailMessage
+from flask_mail import Mail, Message
 UPLOAD_FOLDER = "static/profile_pics"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 import random
 import json
-from datetime import datetime
+import re
+from datetime import datetime, timedelta
 from flask_pymongo import PyMongo
 import mysql.connector
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+app = Flask(__name__)
+# 2️⃣ THEN INITIALIZE LIMITER
+limiter = Limiter(
+    key_func=get_remote_address,
+    app=app,
+    default_limits=["100 per hour"]
+)
+
 def get_current_role():
     return session.get("impersonate_role") or session.get("role")
 
@@ -29,7 +43,7 @@ def get_db_connection():
         password='@STHA980',
         database='e_learning_platform'
     )
-app = Flask(__name__)
+
 import certifi
 
 try:
@@ -57,6 +71,14 @@ timetable_collection    = db['timetable']
 doubts_collection       = db['doubts']
 quiz_results_collection = db['quiz_results']
 enrollments_collection  = db['enrollments']
+progress_collection     = db['progress']
+gamification_collection = db['gamification']
+deadlines_collection    = db['deadlines']
+badges_collection       = db['badges']
+attendance_otp_collection=db['attendance_otp']
+attendance_sessions=db['attendance_sessions']
+attendance_records=db['attendance_records']
+
 app.secret_key = 'your_secret_key_here'
 
 @app.route('/')
@@ -65,90 +87,246 @@ def home():
 @app.route('/signup_selection')
 def signup_selection():
     return render_template('signup_selection.html')
+
+app.config["MAIL_SERVER"] = "smtp.gmail.com"
+app.config["MAIL_PORT"] = 587
+app.config["MAIL_USE_TLS"] = True
+app.config["MAIL_USERNAME"] = "asthasengar2088@gmail.com"
+app.config["MAIL_PASSWORD"] = "fmegfxybmsvevgmc"
+EMAIL = "asthasengar2088@gmail.com"
+EMAIL_PASSWORD = "fmegfxybmsvevgmc"
+mail = Mail(app)
+def send_otp(email, otp):
+    msg = EmailMessage()
+    msg["Subject"] = "Your Login OTP"
+    msg["From"] = EMAIL
+    msg["To"] = email
+    msg.set_content(f"Your OTP is {otp}.It is valid for 5 minutes.")
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+        smtp.login(EMAIL, EMAIL_PASSWORD)
+        smtp.send_message(msg)
+
+def generate_otp():
+    return str(random.randint(100000, 999999))
+# ---------- EMAIL SECURITY ----------
+BLOCKED_DOMAINS = [
+    "mailinator.com",
+    "tempmail.com",
+    "10minutemail.com",
+    "guerrillamail.com"
+]
+
+def is_valid_email(email):
+    pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+    return re.match(pattern, email)
+
+def is_disposable_email(email):
+    domain = email.split("@")[1]
+    return domain in BLOCKED_DOMAINS
 # ------------------------ Signup ------------------------
-@app.route('/signup', methods=['GET', 'POST'])
+import random
+@app.route("/signup", methods=["GET", "POST"])
 def signup():
-    if request.method == 'POST':
-        name = request.form['name'].strip()
-        email = request.form['email'].strip().lower()
-        password = request.form['password'].strip()
-        role = request.form['role'].strip().lower()
-        background = request.form.get('background', '').strip()
+    if request.method == "POST":
+        name = request.form["name"].strip()
+        email = request.form["email"].strip().lower()
+        password = request.form["password"]
+        role = request.form["role"]
+        background = request.form["background"]
 
-        # Check if user exists
-        if users_collection.find_one({'Email': email}):
-            return render_template('signup.html', error="Email already registered.")
+        # 🔐 Layer 1: Email format
+        if not is_valid_email(email):
+            return render_template("signup.html", error="Invalid email format")
 
-        # Add new user
-        new_user = {
+        # 🔐 Layer 2: Disposable email block
+        if is_disposable_email(email):
+            return render_template("signup.html", error="Temporary emails are not allowed")
+
+        # Check if already exists
+        if users_collection.find_one({"Email": email}):
+            return render_template("signup.html", error="Email already registered")
+
+        # 🔐 OTP creation
+        otp = generate_otp()
+        otp_expiry = datetime.utcnow() + timedelta(minutes=5)
+
+        users_collection.insert_one({
             "Name": name,
             "Email": email,
-            "Password": password,
+            "Password": generate_password_hash(password),
             "Role": role,
-            "Background": background
-        }
-        users_collection.insert_one(new_user)
-        return redirect(url_for('login'))
+            "Background": background,
+            "is_verified": False,
+            "otp": otp,
+            "otp_expiry": otp_expiry,
+            "otp_sent_at": datetime.utcnow(),
+            # ✅ Dashboard Default Values
+            "level": 1,
+            "xp": 0,
+            "xp_needed": 100,
+            "streak_days": 0,
+            "badges": [],
+            "deadlines": [],
+            "quizzes_taken": 0,
+            "avg_score": 0
+        })
 
-    return render_template('signup.html')
-# ------------------------ Login (Unified for All Roles) with Case-Insensitive Role ------------------------
+        send_otp(email, otp)
+
+        session["verify_email"] = email
+        return redirect(url_for("verify_otp"))
+
+    return render_template("signup.html")
+# ------------------------ Verify OTP ------------------------
+@app.route("/verify-otp", methods=["GET", "POST"])
+def verify_otp():
+    email = session.get("verify_email")
+
+    if not email:
+        return redirect(url_for("login"))
+
+    user = users_collection.find_one({"Email": email})
+
+    if request.method == "POST":
+        entered_otp = request.form["otp"]
+
+        if datetime.utcnow() > user["otp_expiry"]:
+            return render_template("verify_otp.html", error="OTP expired")
+
+        if entered_otp == user["otp"]:
+            users_collection.update_one(
+                {"Email": email},
+                {"$set": {"is_verified": True}, "$unset": {"otp": "", "otp_expiry": ""}}
+            )
+            session.pop("verify_email")
+            return redirect(url_for("login"))
+
+        return render_template("verify_otp.html", error="Invalid OTP")
+
+    return render_template("verify_otp.html")
+@app.route("/resend-otp")
+def resend_otp():
+    email = session.get("verify_email")
+    user = users_collection.find_one({"Email": email})
+
+    if datetime.utcnow() - user["otp_sent_at"] < timedelta(seconds=60):
+        return "Wait before requesting OTP again"
+
+    otp = generate_otp()
+    users_collection.update_one(
+        {"Email": email},
+        {"$set": {
+            "otp": otp,
+            "otp_expiry": datetime.utcnow() + timedelta(minutes=5),
+            "otp_sent_at": datetime.utcnow()
+        }}
+    )
+
+    send_otp(email, otp)
+    return "OTP resent successfully"
+# ------------------------ Login (Unified for All Roles) ------------------------
 @app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def login():
     if request.method == 'POST':
         email = request.form['username'].strip().lower()
-        password = request.form['password'].strip()
-        role = request.form['role'].strip().lower()
+        password = request.form['password']
+        role_input = request.form['role'].strip().lower()
 
-        # Case-insensitive query
-        user = users_collection.find_one({
-            'Email': email,
-            'Password': password,
-            'Role': {"$regex": f"^{role}$", "$options": "i"}  # Case-insensitive
-        })
+        # 1. Find user by email ONLY
+        user = users_collection.find_one({'Email': email})
 
-        if user:
-            # Save session
-            session['user'] = user.get('Name', 'User')
-            session['email'] = user.get('Email')
-            session['role'] = user.get('Role').lower()   # normalize
-            session['background'] = user.get('Background', 'Non-IT')
+        # 2. Check if user exists and password is correct
+        if user and check_password_hash(user["Password"], password):
+            
+            # 3. Check if the role matches (case-insensitive)
+            if user["Role"].lower() != role_input:
+                return render_template('login.html', error="Incorrect role selected")
 
-            # Redirect based on role
+            # 4. Handle unverified users
+            if not user.get("is_verified", False):
+                otp = generate_otp()
+                users_collection.update_one(
+                    {"Email": email},
+                    {"$set": {
+                        "otp": otp,
+                        "otp_expiry": datetime.utcnow() + timedelta(minutes=5),
+                        "otp_sent_at": datetime.utcnow()
+                    }}
+                )
+                send_otp(email, otp)
+                session["verify_email"] = email
+                return redirect(url_for("verify_otp"))
+            
+            # 5. Success! Log them in
+            session['user'] = user['Name']
+            session['email'] = user['Email']
+            session['role'] = user['Role'].lower()
+            
+            # Redirect logic...
             if session['role'] == 'admin':
                 return redirect(url_for('admin_dashboard'))
             elif session['role'] == 'student':
                 return redirect(url_for('student_dashboard'))
             elif session['role'] == 'instructor':
                 return redirect(url_for('instructor_dashboard'))
-            else:
-                return render_template('login.html', error="Unknown role type.")
-        else:
-            return render_template('login.html', error="Invalid Email / Password / Role.")
+
+        return render_template('login.html', error="Invalid email or password")
 
     return render_template('login.html')
-
 # ------------------------ Forgot Password ------------------------
 @app.route('/forgot_password', methods=['GET', 'POST'])
 def forgot_password():
-    file_path = os.path.join(app.config['UPLOAD_FOLDER'], 'users.xlsx')
     if request.method == 'POST':
         email = request.form['email'].strip().lower()
-        new_password = request.form['new_password'].strip()
+        user = users_collection.find_one({"Email": email})
 
-        # CAPTCHA temporarily removed
+        if not user:
+            return render_template('forgot_password.html', error="Email not found")
 
-        if os.path.exists(file_path):
-            df = pd.read_excel(file_path)
-            df['Email'] = df['Email'].str.lower().str.strip()
-            if email in df['Email'].values:
-                df.loc[df['Email'] == email, 'Password'] = new_password
-                df.to_excel(file_path, index=False)
-                return redirect(url_for('login'))
-            else:
-                return render_template('forgot_password.html', error="Email not found.")
-        return "User data file not found."
+        # FIX: Generate the OTP and pass it to the function
+        otp = generate_otp()
+        otp_expiry = datetime.utcnow() + timedelta(minutes=5)
+        
+        users_collection.update_one(
+            {"Email": email},
+            {"$set": {"otp": otp, "otp_expiry": otp_expiry}}
+        )
+        
+        send_otp(email, otp) # Added the 'otp' argument here
+        session["reset_email"] = email
+        return redirect(url_for("reset_password"))
 
     return render_template('forgot_password.html')
+
+@app.route('/reset_password', methods=['GET', 'POST'])
+def reset_password():
+    email = session.get("reset_email")
+    if not email:
+        return redirect(url_for("login"))
+
+    user = users_collection.find_one({"Email": email})
+
+    if request.method == 'POST':
+        otp = request.form['otp']
+        new_password = request.form['password']
+
+        if user["otp"] == otp and user["otp_expiry"] > datetime.utcnow():
+            users_collection.update_one(
+                {"Email": email},
+                {"$set": {
+                    "Password": generate_password_hash(new_password),
+                    "otp": None,
+                    "otp_expiry": None
+                }}
+            )
+            session.pop("reset_email")
+            return redirect(url_for("login"))
+
+        return render_template("reset_password.html", error="Invalid OTP")
+
+    return render_template("reset_password.html")
 # ------------------------ Logout ------------------------
 @app.route('/logout')
 def logout():
@@ -161,7 +339,15 @@ def student_dashboard():
     email = get_current_email()
 
     if role != 'student':
-     return render_template('access_denied.html')
+        return render_template('access_denied.html')
+
+    # -------- Fetch user document --------
+    user = users_collection.find_one({"Email": email})
+
+    if not user:
+        return redirect(url_for('login'))
+
+    # -------- Quiz Progress (Already Dynamic) --------
     user_quizzes = list(quiz_results_collection.find({'Email': email}))
 
     quizzes_taken = len(user_quizzes)
@@ -174,30 +360,29 @@ def student_dashboard():
         "percent_complete": round(percent_complete, 2)
     }
 
-    deadlines = [
-        {"name": "Assignment 1", "due": "2025-07-10", "status": "Pending"},
-        {"name": "Quiz 2", "due": "2025-07-15", "status": "Upcoming"}
-    ]
+    # -------- Gamification (FROM DATABASE) --------
+    xp = user.get("xp", 0)
+    xp_needed = user.get("xp_needed", 100)
 
     gamification = {
-        "level": 5, "xp": 150, "xp_needed": 200,
-        "percent_to_next_level": int((150 / 200) * 100),
-        "streak_days": 3
+        "level": user.get("level", 1),
+        "xp": xp,
+        "xp_needed": xp_needed,
+        "percent_to_next_level": int((xp / xp_needed) * 100) if xp_needed > 0 else 0,
+        "streak_days": user.get("streak_days", 0)
     }
 
-    badges = [{"name": "First Quiz"}, {"name": "80% Club"}]
+    # -------- Deadlines (FROM DATABASE) --------
+    deadlines = user.get("deadlines", [])
 
-    live_session = {
-        "title": "Python Live Doubt Session",
-        "link": "https://meet.google.com/xyz-live-link",
-        "time": "July 10, 2025 - 6:00 PM"
-    }
+    # -------- Badges (FROM DATABASE) --------
+    badges = user.get("badges", [])
 
-    downloads = [
-        {"title": "Python Notes", "file": "/static/resources/python_notes.pdf"},
-        {"title": "Quiz Prep Material", "file": "/static/resources/quiz_prep.pdf"},
-        {"title": "Assignment Samples", "file": "/static/resources/assignment_sample.pdf"}
-    ]
+    # -------- Live Session (Optional - Can Keep Static) --------
+    live_session = db["live_sessions"].find_one({}, {"_id": 0}) or {}
+
+    # -------- Downloads (Optional - Can Keep Static) --------
+    downloads = list(db["resources"].find({}, {"_id": 0}))
 
     return render_template("student_dashboard.html",
                            user=session.get('user'),
@@ -300,8 +485,127 @@ def quiz_history():
         return redirect(url_for('login'))
 
     return render_template('quiz_history.html', records=records, role=role)
+# ------------------------ Admin View User Dashboard ------------------------
+# The route that starts impersonation (Example: /admin/open_dashboard/student@email.com)
+@app.route("/admin/open_dashboard/<email>")
+def admin_open_dashboard(email):
+    # ... logic to check admin role ...
+    
+    # 1. Fetch the target user
+    target_user = users_collection.find_one({"Email": email})
+    
+    # 2. Set the impersonation session variables
+    session['impersonate_role'] = session['role'] # Admin
+    session['impersonate_email'] = session['email'] # Admin email
+    
+    # 3. Overwrite the main session with the target user's details
+    session['role'] = target_user['Role']
+    session['email'] = target_user['Email']
+    session['user'] = target_user['Name']
+    
+    # 4. Redirect to the standard, role-specific dashboard
+    if target_user['Role'].lower() == 'student':
+        return redirect(url_for('student_dashboard'))
+    elif target_user['Role'].lower() == 'instructor':
+        return redirect(url_for('instructor_dashboard'))
+    # ... handle other roles ...
+# ------------------------ Admin View User Dashboard ------------------------
+@app.route("/admin/view_user_dashboard/<email>")
+def admin_view_user_dashboard(email):
+    if session.get("role") != "admin":
+        return redirect(url_for("login"))
+
+    # Fetch user by email
+    user = users_collection.find_one({"Email": email})
+    if not user:
+        return "User not found."
+
+    # --------- Load student dashboard data ---------
+
+    # Deadlines (example or empty if none)
+    deadlines = [
+        {"name": "Assignment 1", "due": "2025-12-20", "status": "Pending"},
+        {"name": "Project Report", "due": "2025-12-25", "status": "Pending"}
+    ]
+
+    # Timetable
+    timetable = list(timetable_collection.find({"student_email": user["Email"]}))
+
+    # Progress (if no record found → use defaults)
+    progress = progress_collection.find_one({"email": user["Email"]}) or {
+        "quizzes_taken": 0,
+        "avg_score": 0,
+        "percent_complete": 0
+    }
+
+    # Gamification (fallback defaults)
+    gamification = gamification_collection.find_one({"email": user["Email"]}) or {
+        "level": 1,
+        "xp": 0,
+        "xp_needed": 100,
+        "percent_to_next_level": 0,
+        "streak_days": 0
+    }
+
+    # Badges (if none, return empty list)
+    badges = list(badges_collection.find({"email": user["Email"]}))
+
+    # ---------- Render Student Dashboard for Admin ----------
+    return render_template(
+        "student_dashboard.html",
+        user=user,
+        deadlines=deadlines,
+        progress=progress,
+        timetable=timetable,
+        gamification=gamification,
+        badges=badges,
+        impersonate=True   # <--- Very important!
+    )
+@app.route("/admin/view_student_profile/<email>")
+def admin_view_student_profile(email):
+    if session.get("role") != "admin":
+        return redirect(url_for("login"))
+
+    student = users_collection.find_one({"Email": email, "Role": "student"})
+    if not student:
+        return "Student not found."
+
+    return render_template("admin_view_student_profile.html", student=student)
+@app.route("/admin/view_instructor_profile/<email>")
+def admin_view_instructor_profile(email):
+    if session.get("role") != "admin":
+        return redirect(url_for("login"))
+
+    instructor = users_collection.find_one({"Email": email, "Role": "instructor"})
+    if not instructor:
+        return "Instructor not found."
+
+    return render_template("admin_view_instructor_profile.html", instructor=instructor)
 # ------------------------ Profile ------------------------
-@app.route('/profile', methods=['GET', 'POST'])
+@app.route("/profile/<email>")
+def profile_page(email):
+
+    # get target user
+    user = users_collection.find_one({"Email": email})
+    if not user:
+        return "User not found", 404
+
+    current_role = session.get("role")
+    current_email = session.get("email")
+
+    # Check permissions
+    is_admin = (current_role == "admin")
+    is_owner = (current_email == email)    # student or instructor viewing own profile
+
+    # send dynamic data
+    data = {
+        "is_admin": is_admin,
+        "is_owner": is_owner,
+        "user": user
+    }
+
+    return render_template("profile.html", **data)
+'''@app.route('/profile', methods=['GET', 'POST'])
 def profile():
 
     # ✅ Allow both admin & student
@@ -341,29 +645,144 @@ def profile():
 
         return redirect(url_for('profile'))
 
-    return render_template('profile.html', user=user)#---------------------- Browse Courses ------------------------
-@app.route('/courses')
-def browse_courses():
-    if session.get('role') not in ['student', 'admin']:
+    return render_template('profile.html', user=user)'''
+
+# ------------------- Helper: normalize email -------------------
+def _norm_email(e):
+    return e.strip().lower() if e else e
+
+# ------------------- Route: logged-in user's profile -------------------
+@app.route('/profile', methods=['GET', 'POST'])
+def profile():
+    # require login
+    if 'email' not in session:
+        flash("Please login.", "danger")
         return redirect(url_for('login'))
 
-    courses = list(courses_collection.find())
-    return render_template('courses.html', courses=courses)
+    current_email = _norm_email(session.get('email'))
+    # fetch latest from DB
+    user = users_collection.find_one({'Email': current_email})
+    if not user:
+        flash("User not found.", "danger")
+        return redirect(url_for('login'))
 
-@app.route('/enroll/<course_title>')
-def enroll(course_title):
-    if session.get('role') != 'student':
-        return render_template('access_denied.html')
+    if request.method == 'POST':
+        # fields from form
+        name = request.form.get('name', user.get('Name'))
+        password = request.form.get('password', '').strip()
+        background = request.form.get('background', user.get('Background'))
+        phone = request.form.get('phone', user.get('Phone'))
+        bio = request.form.get('bio', user.get('Bio'))
 
-    record = {
-        "Student": session.get('user'),
-        "Email": session.get('email'),
-        "Course": course_title,
-        "DateTime": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    }
+        # if password blank => keep old
+        if not password:
+            password = user.get('Password', '')
 
-    enrollments_collection.insert_one(record)
-    return redirect(url_for('browse_courses'))
+        update = {
+            "Name": name,
+            "Password": password,
+            "Background": background,
+            "Phone": phone,
+            "Bio": bio
+        }
+        users_collection.update_one({'Email': current_email}, {'$set': update})
+        # update session name/background
+        session['user'] = name
+        session['background'] = background
+        return redirect(url_for('profile'))
+
+    # GET -> render profile page for current user
+    return render_template('profile.html', user=user, admin_view=False)
+
+# ------------------- Route: Admin view/edit another user's profile -------------------
+@app.route('/admin/view_profile/<email>', methods=['GET', 'POST'])
+def admin_view_profile(email):
+    # only admin allowed
+    if session.get('role') != 'admin':
+        flash("Access denied.", "danger")
+        return redirect(url_for('login'))
+
+    email = _norm_email(email)
+    user = users_collection.find_one({'Email': email})
+    if not user:
+        flash("User not found.", "danger")
+        return redirect(url_for('manage_users'))
+
+    if request.method == 'POST':
+        # admin editing target user
+        name = request.form.get('name', user.get('Name'))
+        role = request.form.get('role', user.get('Role'))
+        password = request.form.get('password', '').strip()
+        background = request.form.get('background', user.get('Background'))
+        phone = request.form.get('phone', user.get('Phone'))
+        bio = request.form.get('bio', user.get('Bio'))
+
+        if not password:
+            password = user.get('Password', '')
+
+        updated = {
+            "Name": name,
+            "Role": role,
+            "Password": password,
+            "Background": background,
+            "Phone": phone,
+            "Bio": bio
+        }
+        users_collection.update_one({'Email': email}, {'$set': updated})
+        flash("User profile updated by admin.", "success")
+        return redirect(url_for('admin_view_profile', email=email))
+
+    # GET -> render profile page with admin_view True
+    return render_template('profile.html', user=user, admin_view=True)
+
+@app.route('/student/attendance', methods=['GET', 'POST'])
+def mark_attendance():
+    if request.method == 'POST':
+        entered_otp = request.form.get("otp")
+
+        # 🔍 Check OTP in DB
+        otp_data = otp_collection.find_one({"otp": entered_otp})
+
+        if not otp_data:
+            return render_template("mark_attendance.html", error="❌ Invalid OTP")
+
+        # ⏱️ Check expiry
+        if datetime.utcnow() > otp_data["expires_at"]:
+            return render_template("mark_attendance.html", error="❌ OTP Expired")
+
+        # ✅ Mark attendance
+        attendance_collection.insert_one({
+            "student": session.get("user"),
+            "subject": otp_data["subject"],
+            "teacher": otp_data["teacher"],
+            "date": datetime.utcnow()
+        })
+
+        return render_template("mark_attendance.html", success="✅ Attendance marked!")
+
+    return render_template("mark_attendance.html")
+
+# FIXED: Moved to top level and separated from previous function
+@app.route("/admin/attendance")
+def admin_attendance_view():
+    if session.get("role") != "admin":
+        return redirect(url_for("login"))
+
+    records = list(attendance_records.find())
+
+    return render_template("admin_attendance_view.html", records=records)
+# ------------------- Route: Admin deletes a user -------------------
+@app.route('/admin/delete_user/<email>', methods=['POST'])
+def admin_delete_user(email):
+    if session.get('role') != 'admin':
+        flash("Access denied.", "danger")
+        return redirect(url_for('login'))
+
+    email = _norm_email(email)
+    users_collection.delete_one({'Email': email})
+    flash("User deleted.", "info")
+    return redirect(url_for('manage_users'))
+
 # ------------------------ Instructor Dashboard ------------------------
 @app.route('/instructor_dashboard')
 def instructor_dashboard():
@@ -478,6 +897,7 @@ def update_course(course_title):
 def delete_course(course_title):
     if session.get('role') != 'instructor':
         return "Access Denied", 403
+    
 
     result = db.courses.delete_one({'title': course_title})
 
@@ -658,6 +1078,7 @@ def download_assignment(filename):
 # ------------------------ Ask a Doubt ------------------------
 @app.route('/ask_doubt', methods=['GET', 'POST'])
 def ask_doubt():
+    user=session.get('user')
     role = get_current_role()
     email = get_current_email()
 
@@ -682,6 +1103,7 @@ def ask_doubt():
 # ------------------------ Feedback ------------------------
 @app.route('/feedback', methods=['GET', 'POST'])
 def feedback():
+    user=session.get('user')
     role = get_current_role()
     email = get_current_email()
     
@@ -711,12 +1133,17 @@ def feedback():
 # ------------------------ Student Assignments ------------------------
 @app.route("/student/assignments")
 def student_assignments():
-    if session.get("role") != "student":
+    if "email" not in session or session.get("role") != "student":
         return redirect(url_for("login"))
 
-    assignments = list(assignments_collection.find().sort("created_at", -1))
+    assignments = list(assignments_collection.find())
 
     return render_template("student_assignments.html", assignments=assignments)
+@app.route('/student/assignments/submit/<assignment_id>', methods=['POST'])
+def submit_assignment(assignment_id):
+    assignment = assignments_collection.find_one({"_id": ObjectId(assignment_id)})
+    # handle submission
+    return redirect(url_for('student_assignments'))
 # ------------------------ Leaderboard ------------------------
 @app.route('/leaderboard')
 def leaderboard():
@@ -810,8 +1237,45 @@ def manage_users():
 
     users = list(users_collection.find(query))
     return render_template("manage_users.html", users=users, search_query=search_query, role_filter=role_filter)
+# ---------------------- STUDENT: Browse Courses ----------------------
+@app.route("/browse_courses")
+def browse_courses():
+    if "email" not in session or session.get("role") != "student":
+        return redirect(url_for("login"))
+
+    # Fetch all courses
+    all_courses = list(courses_collection.find())
+
+    # Fetch courses the student is enrolled in
+    enrolled = enrollments_collection.find({"email": session["email"]})
+    enrolled_ids = [str(e["course_id"]) for e in enrolled]
+
+    return render_template("browse_courses.html",
+                           courses=all_courses,
+                           enrolled_ids=enrolled_ids)
+# ---------------------- Enroll in Course ----------------------
+@app.route("/enroll/<course_id>")
+def enroll(course_id):
+    if "email" not in session or session.get("role") != "student":
+        return redirect(url_for("login"))
+
+    # Prevent duplicate enrollment
+    exists = enrollments_collection.find_one({
+        "email": session["email"],
+        "course_id": ObjectId(course_id)
+    })
+
+    if exists:
+        return redirect(url_for("browse_courses"))
+
+    enrollments_collection.insert_one({
+        "email": session["email"],
+        "course_id": ObjectId(course_id)
+    })
+
+    return redirect(url_for("browse_courses"))
 # -------------------- ADMIN OPEN DASHBOARD --------------------
-@app.route('/admin_open_dashboard/<user_id>')
+'''@app.route('/admin_open_dashboard/<user_id>')
 def admin_open_dashboard(user_id):
     if session.get('role') != 'admin':
         return render_template('access_denied.html')
@@ -831,7 +1295,7 @@ def admin_open_dashboard(user_id):
     elif user['Role'] == "instructor":
         return redirect(url_for("instructor_dashboard"))
     else:
-        return redirect(url_for("admin_dashboard"))
+        return redirect(url_for("admin_dashboard"))'''
 # -------------------- STOP IMPERSONATION --------------------
 @app.route('/stop_impersonate')
 def stop_impersonate():
@@ -1184,7 +1648,7 @@ def resolve_doubt(id):
     doubts_collection.update_one({'_id': ObjectId(id)}, {'$set': {'status': 'resolved'}})
     flash("Doubt marked resolved.", "success")
     return redirect(url_for('manage_doubts'))
-# ----------------------- ASSIGNMENTS (ADMIN) --------------------------
+# ----------------------- ASSIGNMENTS (ADMIN) -------------------------
 @app.route("/admin/manage_assignments", methods=["GET", "POST"])
 def admin_manage_assignments():
     if "role" not in session or session["role"] != "admin":
@@ -1211,8 +1675,14 @@ def admin_manage_assignments():
         return redirect(url_for("admin_manage_assignments"))
 
     assignments = list(assignments_collection.find().sort("created_at", -1))
+
+    # FIXED: convert only for display, NOT overwrite in database
     for a in assignments:
-        a["created_at"] = a.get("created_at", datetime.utcnow()).strftime("%Y-%m-%d %H:%M")
+        created_at_value = a.get("created_at")
+        if isinstance(created_at_value, datetime):
+            a["created_at_str"] = created_at_value.strftime("%Y-%m-%d %H:%M")
+        else:
+            a["created_at_str"] = created_at_value  # string already
 
     return render_template("admin_manage_assignments.html", assignments=assignments)
 # ---------- QUIZ RESULTS (ADMIN view + export) ----------

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}My Assignments{% endblock %}
+
+{% block content %}
+
+<style>
+    .page-title {
+        font-size: 26px;
+        font-weight: 600;
+        color: #007bff;
+        margin-bottom: 18px;
+    }
+
+    .assign-card {
+        background: #fff;
+        padding: 18px;
+        border-radius: 12px;
+        margin-bottom: 15px;
+        box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .assign-title {
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .assign-desc {
+        font-size: 14px;
+        color: #666;
+        margin: 8px 0;
+    }
+
+    .due {
+        font-size: 13px;
+        color: red;
+        margin-bottom: 10px;
+    }
+
+    .submit-btn {
+        background: #28a745;
+        padding: 7px 12px;
+        text-decoration: none;
+        color: white;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+</style>
+
+<h2 class="page-title">My Assignments</h2>
+
+{% if assignments %}
+    {% for a in assignments %}
+    <div class="assign-card">
+        <div class="assign-title">{{ a.Title }}</div>
+        <div class="assign-desc">{{ a.Description }}</div>
+        <div class="due">Due Date: {{ a.DueDate }}</div>
+
+        <a href="{{ url_for('submit_assignment', assignment_id=a['_id']) }}"method="POST"
+           class="submit-btn">
+            Submit Assignment
+        </a>
+    </div>
+    {% endfor %}
+{% else %}
+    <p>No assignments assigned yet.</p>
+{% endif %}
+
+{% endblock %}

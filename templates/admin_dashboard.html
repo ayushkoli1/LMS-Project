@@ -25,6 +25,12 @@
             <h3>Total Announcements</h3>
             <p style="font-size:2em; font-weight:bold;">{{ stats.total_announcements }}</p>
         </div>
+        <!-- ✅ ATTENDANCE CARD -->
+    <a href="{{ url_for('admin_attendance_view') }}" class="stat-card"
+       style="background:#198754; color:white; padding:20px; border-radius:10px;
+              text-align:center; text-decoration:none; box-shadow:0 3px 8px rgba(0,0,0,0.15);">
+        📊 Manage Attendance
+    </a>
     </div>
 
     <!-- Two-column grid for recent data -->

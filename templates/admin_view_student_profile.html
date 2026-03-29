@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Profile</title>
+</head>
+<body>
+
+<h2>👤 Student Profile</h2>
+
+<p><strong>Name:</strong> {{ student.Name }}</p>
+<p><strong>Email:</strong> {{ student.Email }}</p>
+<p><strong>Role:</strong> {{ student.Role }}</p>
+<p><strong>Phone:</strong> {{ student.Phone }}</p>
+<p><strong>Department:</strong> {{ student.Department }}</p>
+
+<br>
+<a href="{{ url_for('manage_users') }}" style="padding:10px;background:#007bff;color:white;text-decoration:none;border-radius:5px;">⬅ Back to Users</a>
+
+</body>
+</html>

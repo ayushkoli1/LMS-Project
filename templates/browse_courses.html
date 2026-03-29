@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Browse Courses{% endblock %}
+
+{% block content %}
+
+<style>
+    .page-title {
+        font-size: 28px;
+        font-weight: 600;
+        color: #007bff;
+        margin-bottom: 20px;
+    }
+
+    .course-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 20px;
+    }
+
+    .course-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 18px;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+        transition: 0.3s;
+    }
+
+    .course-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+    }
+
+    .course-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+    }
+
+    .course-desc {
+        font-size: 14px;
+        color: #555;
+        margin-bottom: 12px;
+        height: 40px;
+        overflow: hidden;
+    }
+
+    .btn-enroll {
+        background: #28a745;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    .btn-enrolled {
+        background: #6c757d;
+        pointer-events: none;
+    }
+</style>
+
+
+<h2 class="page-title">Browse Courses</h2>
+
+<div class="course-grid">
+    {% for c in courses %}
+    <div class="course-card">
+        <div class="course-title">{{ c.CourseName }}</div>
+        <div class="course-desc">{{ c.Description }}</div>
+
+        {% if c._id|string in enrolled_ids %}
+            <a class="btn-enroll btn-enrolled">✓ Enrolled</a>
+        {% else %}
+            <a href="{{ url_for('enroll', course_id=c._id) }}" class="btn-enroll">Enroll Now</a>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

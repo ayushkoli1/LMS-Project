@@ -2,43 +2,89 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ask a Doubt</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f5f8fc;
-      padding: 30px;
+      font-family: 'Poppins', 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea, #51dd3f);
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
     .box {
-      max-width: 600px;
-      margin: auto;
+      max-width: 500px;
+      width: 90%;
       background: #fff;
-      padding: 25px;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+    h2 {
+      margin-top: 0;
+      color: #333;
+    }
+    label {
+      display: block;
+      text-align: left;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #555;
     }
     textarea {
       width: 100%;
       height: 150px;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+      padding: 15px;
+      border-radius: 10px;
+      border: 2px solid #eee;
       font-size: 16px;
+      box-sizing: border-box;
+      resize: none;
+      transition: border-color 0.3s;
+    }
+    textarea:focus {
+      border-color: #667eea;
+      outline: none;
     }
     button {
-      margin-top: 15px;
-      background: #3498db;
+      width: 100%;
+      margin-top: 20px;
+      background: #667eea;
       color: white;
-      padding: 10px 18px;
+      padding: 14px;
       border: none;
-      border-radius: 6px;
+      border-radius: 10px;
       cursor: pointer;
       font-weight: bold;
+      font-size: 16px;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #5a67d8;
     }
     .message {
-      margin-top: 15px;
-      color: green;
+      margin-top: 20px;
+      padding: 10px;
+      background: #d4edda;
+      color: #155724;
+      border-radius: 8px;
       font-weight: bold;
+    }
+    .back-btn {
+      display: inline-block;
+      margin-top: 20px;
+      color: #667eea;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+    .back-btn:hover {
+      color: #764ba2;
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -46,13 +92,16 @@
   <div class="box">
     <h2>🙋 Ask a Doubt</h2>
     <form method="POST">
-      <label for="doubt">Your Question:</label><br><br>
-      <textarea name="doubt" required></textarea><br>
+      <label for="doubt">What is your question?</label>
+      <textarea name="doubt" id="doubt" placeholder="Type your doubt here..." required></textarea>
       <button type="submit">Submit Doubt</button>
     </form>
+
     {% if message %}
-      <div class="message">{{ message }}</div>
+      <div class="message"> {{ message }}</div>
     {% endif %}
+
+    <a href="{{ url_for('student_dashboard') }}" class="back-btn">← Back to Dashboard</a>
   </div>
 </body>
 </html>
