@@ -3,231 +3,219 @@
 
 {% block content %}
 <style>
+  /* Light & Airy Background Gradient */
   body {
-    background: linear-gradient(135deg, #74ebd5, #acb6e5);
+    background: linear-gradient(135deg, #e0f2f1 0%, #e8eaf6 100%);
+    min-height: 100vh;
+    color: #2e567d; /* Darker text for light background */
+    margin: 0;
   }
 
   .profile-wrap {
-    max-width: 1000px;
+    max-width: 1100px;
     margin: 40px auto;
     font-family: 'Poppins', sans-serif;
+    padding: 0 20px;
   }
 
   .heading {
-    font-size: 26px;
-    font-weight: 700;
-    color: #fff;
-    margin-bottom: 20px;
+    font-size: 28px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 30px;
     text-align: center;
   }
 
   .grid {
     display: grid;
-    grid-template-columns: 360px 1fr;
-    gap: 20px;
+    grid-template-columns: 380px 1fr;
+    gap: 25px;
+    align-items: start;
   }
 
-  .card {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(12px);
-    border-radius: 16px;
-    padding: 22px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-    transition: 0.3s;
-  }
-
-  .card:hover {
-    transform: translateY(-4px);
+  /* Refined Light Glassmorphism Card */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.07);
   }
 
   label {
-    font-size: 13px;
-    margin-top: 12px;
-    color: #444;
+    display: block;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    color: #546e7a;
+    margin-top: 15px;
+    font-weight: 500;
   }
 
   input, select, textarea {
     width: 100%;
-    padding: 11px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #cfd8dc;
+    padding: 12px;
     border-radius: 10px;
-    border: 1px solid #ddd;
-    margin-top: 6px;
+    color: #2c3e50;
     font-size: 14px;
-    transition: 0.2s;
+    outline: none;
+    transition: 0.3s;
+  }
+
+  /* Read-only styling for light mode */
+  input[readonly] {
+    background: #eceff1;
+    color: #78909c;
+    cursor: not-allowed;
   }
 
   input:focus, select:focus, textarea:focus {
-    border-color: #3498db;
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(52,152,219,0.2);
+    border-color: #4db6ac;
+    box-shadow: 0 0 0 3px rgba(77, 182, 172, 0.1);
   }
 
-  textarea {
-    min-height: 90px;
+  /* Avatar */
+  .avatar-circle {
+    height: 100px;
+    width: 100px;
+    border-radius: 50%;
+    margin: 0 auto 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #3f958c, #056459);
+    box-shadow: 0 4px 15px rgba(0, 121, 107, 0.2);
+    font-size: 36px;
+    font-weight: bold;
+    color: white;
   }
 
+  .user-name-title { font-size: 1.5rem; color: #263238; margin-bottom: 5px; text-align: center; }
+  .user-email-sub { color: #546e7a; font-size: 0.9rem; margin-bottom: 25px; text-align: center; }
+
+  /* Info Box */
+  .info-box-light {
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .info-box-light p { margin-bottom: 10px; font-size: 0.9rem; color: #455a64; }
+  .info-box-light strong { color: #263238; }
+
+  /* Buttons */
   .btn {
-    padding: 10px 16px;
+    padding: 12px 20px;
     border-radius: 10px;
     border: none;
     cursor: pointer;
     font-weight: 600;
     transition: 0.3s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .btn-save {
-    background: linear-gradient(135deg, #3498db, #6dd5fa);
+    background: #00796b;
     color: white;
+    box-shadow: 0 4px 12px rgba(0, 121, 107, 0.2);
   }
 
-  .btn-save:hover {
-    transform: scale(1.05);
-  }
+  .btn-save:hover { background: #004d40; transform: translateY(-2px); }
 
   .btn-back {
-    background: #6c757d;
-    color: white;
-  }
-
-  .btn-delete {
-    background: #ff4d4d;
-    color: white;
-  }
-
-  .profile-avatar {
-    height: 100px;
-    width: 100px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #3498db, #6dd5fa);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 36px;
-    color: white;
-    margin: auto;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-  }
-
-  .user-name {
-    text-align: center;
-    font-size: 20px;
-    font-weight: 600;
-    margin-top: 12px;
-  }
-
-  .user-email {
-    text-align: center;
-    font-size: 14px;
-    color: #555;
-  }
-
-  .info-box {
+    background: white;
+    border: 1px solid #cfd8dc;
+    color: #546e7a;
     margin-top: 15px;
-    background: #f8fafc;
-    padding: 10px;
-    border-radius: 10px;
   }
 
-  .change-pass {
+  .btn-back:hover { background: #f5f5f5; }
+
+  .btn-delete { background: #e53935; color: white; margin-right: 10px; }
+
+  .change-pass-link {
     display: inline-block;
-    margin-top: 8px;
-    padding: 8px 12px;
+    padding: 8px 15px;
+    background: #e0f2f1;
+    color: #00796b;
     border-radius: 8px;
-    background: #eef6ff;
-    color: #3498db;
     text-decoration: none;
+    font-size: 13px;
+    margin-top: 5px;
     font-weight: 500;
-    transition: 0.2s;
   }
 
-  .change-pass:hover {
-    background: #3498db;
-    color: white;
+  .notice {
+    background: #fff9c4;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #fbc02d;
+    color: #827717;
+    text-align: center;
   }
 
   @media (max-width: 860px) {
     .grid { grid-template-columns: 1fr; }
   }
 </style>
+
 <div class="profile-wrap">
   <div class="heading">User Profile</div>
 
-    <!-- show if admin is viewing someone else -->
-    {% if admin_view %}
-    <div class="notice">
-      <strong>Admin view:</strong> You are viewing <span class="meta-big">{{ user.Name|default(user.Email) }}</span>'s profile.
-    </div>
-     {% endif %}
-
-    <div class="grid">
-    <!-- LEFT: summary card -->
-    <div style="text-align:center;">
-
-  <!-- Avatar -->
-  <div style="
-      height:100px;
-      width:100px;
-      border-radius:50%;
-      margin:auto;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:linear-gradient(135deg,#667eea,#764ba2);
-      color:white;
-      font-size:36px;
-      font-weight:bold;">
-    {{ (user.Name|default('U'))[:1]|upper }}
+  {% if admin_view %}
+  <div class="notice">
+    <strong>Admin view:</strong> You are viewing <span style="font-weight: 700;">{{ user.Name|default(user.Email) }}</span>'s profile.
   </div>
+  {% endif %}
 
-  <!-- Name + Email -->
-  <h2 style="margin-top:15px;">{{ user.Name }}</h2>
-  <p style="color:#6b7280;">{{ user.Email }}</p>
-
-</div>
-
-<!-- Info Box -->
-<div style="
-    margin-top:20px;
-    padding:15px;
-    border-radius:10px;
-    background:#f8fafc;
-">
-  <p><strong>Role:</strong> {{ user.Role }}</p>
-  <p><strong>Background:</strong> {{ user.Background }}</p>
-  <p><strong>Phone:</strong> {{ user.Phone }}</p>
-</div>
-
-<!-- Bio -->
-<div style="
-    margin-top:20px;
-    padding:15px;
-    border-radius:10px;
-    background:#f8fafc;
-">
-  <p><strong>Bio</strong></p>
-  <p style="color:#6b7280;">
-    {{ user.Bio|default("No bio added") }}
-  </p>
-</div>
-
-      {% if admin_view %}
-        <div class="admin-actions">
-          <form method="POST" action="{{ url_for('admin_delete_user', email=user.Email) }}" onsubmit="return confirm('Delete this user permanently?');">
-            <button type="submit" class="btn btn-delete">Delete user</button>
-          </form>
-          <a href="{{ url_for('manage_users') }}" class="btn btn-back" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">Back</a>
+  <div class="grid">
+    <div class="left-col">
+      <div class="glass-card">
+        <div class="avatar-circle">
+          {{ (user.Name|default('U'))[:1]|upper }}
         </div>
-      {% else %}
-        <div style="margin-top:18px;text-align:center;">
-          <a href="{{ url_for('student_dashboard') }}" class="btn btn-back" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">← Back to dashboard</a>
+        <h2 class="user-name-title">{{ user.Name }}</h2>
+        <p class="user-email-sub">{{ user.Email }}</p>
+
+        <div class="info-box-light">
+          <p><strong>Role:</strong> {{ user.Role }}</p>
+          <p><strong>Background:</strong> {{ user.Background }}</p>
+          <p><strong>Phone:</strong> {{ user.Phone }}</p>
         </div>
-      {% endif %}
+
+        <div style="padding: 0 5px;">
+          <p style="font-size: 0.9rem; margin-bottom: 5px; color: #263238;"><strong>Bio</strong></p>
+          <p style="color:#546e7a; font-size: 0.85rem; line-height: 1.5;">
+            {{ user.Bio|default("No bio added") }}
+          </p>
+        </div>
+      </div>
+
+      <div style="text-align: center;">
+        {% if admin_view %}
+          <div style="margin-top:20px; display: flex; justify-content: center;">
+            <form method="POST" action="{{ url_for('admin_delete_user', email=user.Email) }}" onsubmit="return confirm('Delete this user permanently?');">
+              <button type="submit" class="btn btn-delete">Delete user</button>
+            </form>
+            <a href="{{ url_for('manage_users') }}" class="btn btn-back">Back</a>
+          </div>
+        {% else %}
+          <a href="{{ url_for('student_dashboard') }}" class="btn btn-back">← Back to dashboard</a>
+        {% endif %}
+      </div>
     </div>
 
-    <!-- RIGHT: editable form -->
-    <div class="card">
+    <div class="glass-card">
       <form method="POST" id="profileForm">
-        <!-- include hidden field to indicate target email (useful for admin editing another user) -->
         <input type="hidden" name="target_email" value="{{ user.Email }}">
 
         <label>Full name</label>
@@ -236,37 +224,35 @@
         <label>Email (read only)</label>
         <input type="email" name="email" value="{{ user.Email|default('') }}" readonly>
 
-        <label>Role</label>
-        <select name="role">
-          <option value="student" {% if user.Role|lower == 'student' %}selected{% endif %}>Student</option>
-          <option value="instructor" {% if user.Role|lower == 'instructor' %}selected{% endif %}>Instructor</option>
-          <option value="admin" {% if user.Role|lower == 'admin' %}selected{% endif %}>Admin</option>
-        </select>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <div>
+  <label>Role</label>
+  <input type="text" name="role_display" value="Student" readonly style="cursor: not-allowed; background: #eceff1; color: #78909c;">
+  
+  <input type="hidden" name="role" value="student">
+</div>
+          <div>
+            <label>Background</label>
+            <select name="background">
+              <option value="IT" {% if user.Background == 'IT' %}selected{% endif %}>IT</option>
+              <option value="Non-IT" {% if user.Background == 'Non-IT' %}selected{% endif %}>Non-IT</option>
+            </select>
+          </div>
+        </div>
 
         <label>Phone</label>
         <input type="text" name="phone" value="{{ user.Phone|default('') }}">
 
-        <label>Background</label>
-        <select name="background">
-          <option value="IT" {% if user.Background == 'IT' %}selected{% endif %}>IT</option>
-          <option value="Non-IT" {% if user.Background == 'Non-IT' %}selected{% endif %}>Non-IT</option>
-        </select>
-
-        
-        <div style="margin-top: 10px;">
         <label>Password</label>
-        <a href="{{ url_for('forgot_password') }}"class="change-pass">🔒 Change Password
-        </a>
-        </div>
+        <a href="{{ url_for('forgot_password') }}" class="change-pass-link">🔒 Change Password</a>
 
         <label>Bio</label>
-        <textarea name="bio">{{ user.Bio|default('') }}</textarea>
+        <textarea name="bio" rows="4">{{ user.Bio|default('') }}</textarea>
 
-        <div class="row" style="justify-content:flex-end;margin-top:18px;">
+        <div style="display: flex; justify-content: flex-end; margin-top: 25px;">
           {% if admin_view %}
             <button type="submit" class="btn btn-save">Save changes</button>
-            &nbsp;
-            <a href="{{ url_for('manage_users') }}" class="btn btn-back" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">Cancel</a>
+            <a href="{{ url_for('manage_users') }}" class="btn btn-back" style="margin-top:0; margin-left:10px;">Cancel</a>
           {% else %}
             <button type="submit" class="btn btn-save">Update profile</button>
           {% endif %}
@@ -275,16 +261,4 @@
     </div>
   </div>
 </div>
-
-<script>
-  const eye = document.getElementById('toggleEye');
-  const pass = document.getElementById('passwordField');
-  let visible = false;
-  eye?.addEventListener('click', ()=> {
-    if (!pass) return;
-    visible = !visible;
-    pass.type = visible ? 'text' : 'password';
-    eye.textContent = visible ? '🙈' : '👁';
-  });
-</script>
 {% endblock %}

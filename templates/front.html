@@ -93,8 +93,8 @@
     }
 
     .signup-btn {
-      background-color: #fff;
-      color: #002f6c;
+      background-color: #1f1990;
+      color: #eaedf0;
       border: 1px solid #002f6c;
     }
 
@@ -345,16 +345,15 @@
       for interactive learning, progress tracking, and collaborative education.
     </p>
     <div class="buttons">
-      <a href="/signup" class="btn signup-btn">Sign up</a>
+      <a href="/instructor" class="btn-signup">Apply for Instructor</a>
       <a href="/login" class="btn login-btn">Login</a>
     </div>
   </div>
 
   <!-- Image Section -->
   <div class="image-section">
-    <img src="{{ url_for('static', filename='students.jpg') }}" alt="Students learning together" />
-  </div>
-
+    
+  <img src="{{ url_for('static', filename='students.jpg') }}" alt="Students learning together" class="full-image">
   <!-- Collaborative Learning -->
   <div class="section">
     <div class="text">

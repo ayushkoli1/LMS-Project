@@ -1,0 +1,17 @@
+<form method="POST" class="quiz-form">
+  {% for q in questions %}
+    <div class="question-card">
+      <p><strong>Q{{ loop.index }}: {{ q.q }}</strong></p>
+      
+      {% for opt in q.options %}
+        <label>
+          <input type="radio" name="q{{ loop.index0 }}" value="{{ opt }}" required>
+          {{ opt }}
+        </label><br>
+      {% endfor %}
+    </div>
+    <hr>
+  {% endfor %}
+  
+  <button type="submit" class="btn-submit">Finish Assessment</button>
+</form>

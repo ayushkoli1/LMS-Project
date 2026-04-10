@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Instructor Registration - Resume</title>
+
+<style>
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #f5f6f8;
+    margin: 0;
+}
+
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 40px;
+    background: #fff;
+    border-bottom: 1px solid #ddd;
+}
+
+.logo { font-weight: bold; }
+.right { color: #777; }
+
+/* Steps */
+.steps {
+    display: flex;
+    justify-content: center;
+    margin: 30px 0;
+    gap: 40px;
+}
+
+.step { text-align: center; font-size: 13px; color: #aaa; }
+
+.circle {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: #ddd;
+    margin: auto;
+    line-height: 35px;
+    font-weight: bold;
+}
+
+.done .circle { background: #2ecc71; color: white; }
+.active .circle { background: #1f2a78; color: white; }
+
+/* Card */
+.container {
+    width: 70%;
+    margin: auto;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+}
+
+/* Grid Upload */
+.upload-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+/* Small Upload Box */
+.upload-small {
+    border: 1px dashed #ccc;
+    padding: 10px;
+    text-align: center;
+    border-radius: 8px;
+    background: #fafafa;
+    font-size: 12px;
+}
+
+.upload-small:hover {
+    border-color: #1f2a78;
+}
+
+.upload-small input {
+    width: 100%;
+    font-size: 11px;
+}
+
+.upload-small span {
+    display: block;
+    margin-top: 5px;
+    color: #555;
+}
+
+/* Inputs */
+input, textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background: #f9f9f9;
+    margin-bottom: 15px;
+}
+
+textarea { height: 90px; }
+
+/* Buttons */
+.actions {
+    display: flex;
+    justify-content: space-between;
+}
+
+.back {
+    padding: 10px 18px;
+    background: #eee;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.next {
+    padding: 10px 18px;
+    background: #1f2a78;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="navbar">
+    <div class="logo">LMS Portal</div>
+    <div class="right">Instructor Registration</div>
+</div>
+
+<!-- Steps -->
+<div class="steps">
+    <div class="step done"><div class="circle">✔</div>Personal</div>
+    <div class="step done"><div class="circle">✔</div>Education</div>
+    <div class="step active"><div class="circle">3</div>Resume</div>
+    <div class="step"><div class="circle">4</div>Review</div>
+    <div class="step"><div class="circle">5</div>Login ID</div>
+</div>
+
+<div class="container">
+<h2>Resume & Experience</h2>
+
+<form method="POST" action="/resume" enctype="multipart/form-data">
+
+<!-- Resume + Aadhar -->
+<label><b>Main Documents *</b></label>
+<div class="upload-grid">
+    <div class="upload-small">
+        <input type="file" name="resume" required>
+        <span>Resume</span>
+    </div>
+
+    <div class="upload-small">
+        <input type="file" name="aadhar" required>
+        <span>Aadhar</span>
+    </div>
+</div>
+
+<!-- School -->
+<label><b>School Marksheets</b></label>
+<div class="upload-grid">
+    <div class="upload-small">
+        <input type="file" name="marksheet_10">
+        <span>10th</span>
+    </div>
+
+    <div class="upload-small">
+        <input type="file" name="marksheet_12">
+        <span>12th</span>
+    </div>
+</div>
+
+<!-- Graduation -->
+<label><b>Graduation Semesters</b></label>
+<div class="upload-grid">
+    <div class="upload-small"><input type="file" name="sem1"><span>Sem 1</span></div>
+    <div class="upload-small"><input type="file" name="sem2"><span>Sem 2</span></div>
+    <div class="upload-small"><input type="file" name="sem3"><span>Sem 3</span></div>
+    <div class="upload-small"><input type="file" name="sem4"><span>Sem 4</span></div>
+    <div class="upload-small"><input type="file" name="sem5"><span>Sem 5</span></div>
+    <div class="upload-small"><input type="file" name="sem6"><span>Sem 6</span></div>
+    <div class="upload-small"><input type="file" name="sem7"><span>Sem 7</span></div>
+    <div class="upload-small"><input type="file" name="sem8"><span>Sem 8</span></div>
+</div>
+
+<!-- Masters -->
+<label><b>Master’s Marksheet</b></label>
+<div class="upload-grid">
+    <div class="upload-small">
+        <input type="file" name="masters_marksheet">
+        <span>Masters</span>
+    </div>
+</div>
+
+<!-- Certificate -->
+<label><b>Certificates</b></label>
+<div class="upload-grid">
+    <div class="upload-small">
+        <input type="file" name="certificate">
+        <span>Certificate</span>
+    </div>
+</div>
+
+<!-- Experience -->
+<label>Teaching Experience (years)</label>
+<input type="number" name="experience">
+
+<label>Short Bio</label>
+<textarea name="bio"></textarea>
+
+<label>LinkedIn Profile</label>
+<input type="text" name="linkedin">
+
+<div class="actions">
+    <button type="button" class="back" onclick="window.history.back()">Back</button>
+    <button type="submit" class="next">Submit</button>
+</div>
+
+</form>
+</div>
+
+</body>
+</html>

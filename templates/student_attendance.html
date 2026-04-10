@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mark Attendance</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.container {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  width: 380px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+h2 {
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.timer {
+  font-size: 14px;
+  color: #e74c3c;
+  margin-bottom: 15px;
+}
+
+.otp-box {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.otp-box input {
+  width: 45px;
+  height: 50px;
+  text-align: center;
+  font-size: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.otp-box input:focus {
+  border-color: #667eea;
+  outline: none;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: #667eea;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #5a67d8;
+}
+
+.success {
+  display: none;
+  color: green;
+  margin-top: 15px;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h2>📚 Mark Attendance</h2>
+  <div class="timer">OTP expires in <span id="time">30</span>s</div>
+
+  <form method="POST" onsubmit="return combineOTP()">
+    
+    <div class="otp-box">
+      <input type="text" maxlength="1" oninput="move(this,1)">
+      <input type="text" maxlength="1" oninput="move(this,2)">
+      <input type="text" maxlength="1" oninput="move(this,3)">
+      <input type="text" maxlength="1" oninput="move(this,4)">
+      <input type="text" maxlength="1" oninput="move(this,5)">
+      <input type="text" maxlength="1" oninput="move(this,6)">
+    </div>
+
+    <!-- hidden field to send OTP -->
+    <input type="hidden" name="otp" id="otp">
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <div class="success" id="successMsg">✅ Attendance Marked Successfully</div>
+</div>
+
+<script>
+// 🔢 Move cursor automatically
+function move(input, next) {
+  if (input.value.length === 1) {
+    let nextInput = document.querySelectorAll(".otp-box input")[next];
+    if (nextInput) nextInput.focus();
+  }
+}
+
+// 🔗 Combine OTP
+function combineOTP() {
+  let inputs = document.querySelectorAll(".otp-box input");
+  let otp = "";
+  inputs.forEach(input => otp += input.value);
+  document.getElementById("otp").value = otp;
+
+  // show success animation (frontend only)
+  document.getElementById("successMsg").style.display = "block";
+
+  return true; // allow form submit
+}
+
+// ⏱️ Timer
+let time = 30;
+let timer = setInterval(() => {
+  time--;
+  document.getElementById("time").innerText = time;
+
+  if (time <= 0) {
+    clearInterval(timer);
+    document.querySelector(".timer").innerText = "OTP expired ❌";
+  }
+}, 1000);
+</script>
+
+</body>
+</html>

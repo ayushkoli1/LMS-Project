@@ -1,201 +1,158 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mark Attendance</title>
+{% extends "base.html" %}
+{% block title %}Mark Attendance{% endblock %}
+
+{% block content %}
 
 <style>
-  body {
-    margin: 0;
-    font-family: 'Poppins', sans-serif;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-  }
+.attendance-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 12px;
+}
 
-  .container {
-    background: white;
-    padding: 30px;
-    border-radius: 15px;
-    width: 380px;
-    text-align: center;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-  }
+.card {
+  background: #fff;
+  padding: 30px;
+  border-radius: 16px;
+  width: 380px;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
 
-  h2 { margin-bottom: 20px; color: #333; display: flex; align-items: center; justify-content: center; gap: 10px; }
+.title {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
 
-  /* Success/Error Alerts */
-  .alert {
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    font-size: 14px;
-    font-weight: 600;
-    animation: fadeIn 0.4s ease;
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-  .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+.timer {
+  font-size: 14px;
+  color: #e74c3c;
+  margin-bottom: 15px;
+}
 
-  .timer { font-weight: bold; margin-bottom: 15px; color: #555; font-size: 0.9rem; }
-  .timer span { color: #e74c3c; }
+.otp-box {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
 
-  .otp-box {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 25px;
-  }
+.otp-box input {
+  width: 45px;
+  height: 50px;
+  font-size: 20px;
+  text-align: center;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
 
-  .otp-box input {
-    width: 45px;
-    height: 55px;
-    font-size: 24px;
-    text-align: center;
-    border-radius: 10px;
-    border: 2px solid #eee;
-    background: #f9f9f9;
-    transition: all 0.2s;
-  }
+.otp-box input:focus {
+  border-color: #667eea;
+  outline: none;
+}
 
-  .otp-box input:focus {
-    border-color: #667eea;
-    background: white;
-    outline: none;
-    box-shadow: 0 0 8px rgba(102, 126, 234, 0.2);
-  }
+button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: #667eea;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
 
-  button {
-    width: 100%;
-    padding: 14px;
-    background: #667eea;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.3s, transform 0.1s;
-    margin-bottom: 10px;
-  }
+button:hover {
+  background: #5a67d8;
+}
 
-  button:hover { background: #5a67d8; }
-  button:active { transform: scale(0.98); }
-  button:disabled { background: #ccc; cursor: not-allowed; }
+.msg {
+  margin-top: 15px;
+  font-weight: 500;
+}
 
-  .back-btn {
-    display: inline-block;
-    margin-top: 10px;
-    color: #667eea;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    transition: color 0.3s;
-  }
+.success { color: green; }
+.error { color: red; }
 
-  .back-btn:hover {
-    color: #764ba2;
-    text-decoration: underline;
-  }
+.back-btn {
+  display: inline-block;
+  margin-top: 15px;
+  text-decoration: none;
+  color: #555;
+  font-size: 14px;
+}
 </style>
-</head>
 
-<body>
+<div class="attendance-page">
+  <div class="card">
+    
+    <div class="title">📚 Mark Attendance</div>
 
-<div class="container">
-  <h2>📚 Mark Attendance</h2>
+    <!-- Timer -->
+    <div class="timer">OTP expires in <span id="time">30</span>s</div>
 
-  <!-- Messages only show if provided by Flask -->
-  {% if success %}
-    <div class="alert alert-success">✅ {{ success }}</div>
-  {% elif error %}
-    <div class="alert alert-error">❌ {{ error }}</div>
-  {% endif %}
+    <form method="POST" onsubmit="return combineOTP()">
 
-  <div class="timer" id="timer-container">
-    OTP expires in <span id="time">60</span>s
+      <div class="otp-box">
+        <input type="text" maxlength="1" oninput="move(this,1)">
+        <input type="text" maxlength="1" oninput="move(this,2)">
+        <input type="text" maxlength="1" oninput="move(this,3)">
+        <input type="text" maxlength="1" oninput="move(this,4)">
+        <input type="text" maxlength="1" oninput="move(this,5)">
+        <input type="text" maxlength="1" oninput="move(this,6)">
+      </div>
+
+      <input type="hidden" name="otp" id="otp">
+
+      <button type="submit">Submit</button>
+    </form>
+
+    <!-- Messages from backend -->
+    {% if success %}
+      <div class="msg success">✅ Attendance Marked Successfully</div>
+    {% endif %}
+
+    {% if error %}
+      <div class="msg error">❌ {{ error }}</div>
+    {% endif %}
+
+    <a href="{{ url_for('student_dashboard') }}" class="back-btn">← Back to Dashboard</a>
+
   </div>
-
-  <form id="otpForm" method="POST" onsubmit="return combineOTP()">
-    <div class="otp-box">
-      <input type="text" pattern="\d*" inputmode="numeric" maxlength="1" oninput="move(this, 0)" required>
-      <input type="text" pattern="\d*" inputmode="numeric" maxlength="1" oninput="move(this, 1)" required>
-      <input type="text" pattern="\d*" inputmode="numeric" maxlength="1" oninput="move(this, 2)" required>
-      <input type="text" pattern="\d*" inputmode="numeric" maxlength="1" oninput="move(this, 3)" required>
-      <input type="text" pattern="\d*" inputmode="numeric" maxlength="1" oninput="move(this, 4)" required>
-      <input type="text" pattern="\d*" inputmode="numeric" maxlength="1" oninput="move(this, 5)" required>
-    </div>
-
-    <!-- Hidden field that Flask reads as 'otp' -->
-    <input type="hidden" name="otp" id="otp_hidden">
-
-    <button type="submit" id="submitBtn">Submit Attendance</button>
-  </form>
-
-  <a href="{{ url_for('student_dashboard') }}" class="back-btn">← Back to Dashboard</a>
 </div>
 
 <script>
-const inputs = document.querySelectorAll(".otp-box input");
-const submitBtn = document.getElementById("submitBtn");
-
-// Auto-focus move logic
-function move(input, index) {
-  if (input.value.length === 1 && index < 5) {
-    inputs[index + 1].focus();
+// Auto move cursor
+function move(input, next) {
+  if (input.value.length === 1) {
+    let nextInput = document.querySelectorAll(".otp-box input")[next];
+    if (nextInput) nextInput.focus();
   }
 }
 
-// Better Backspace and Navigation handling
-inputs.forEach((input, index) => {
-  input.addEventListener('keydown', (e) => {
-    if (e.key === "Backspace" && input.value === "" && index > 0) {
-      inputs[index - 1].focus();
-    }
-  });
-  
-  // Clear field on focus for easier re-entry
-  input.addEventListener('focus', () => input.select());
-});
-
+// Combine OTP
 function combineOTP() {
-  let otpValue = "";
-  inputs.forEach(i => otpValue += i.value);
-  
-  if (otpValue.length < 6) {
-    return false; 
-  }
-  
-  document.getElementById("otp_hidden").value = otpValue;
-  
-  // Change button text to show activity
-  submitBtn.innerText = "Verifying...";
-  submitBtn.style.opacity = "0.7";
-  
-  return true; 
+  let inputs = document.querySelectorAll(".otp-box input");
+  let otp = "";
+  inputs.forEach(input => otp += input.value);
+  document.getElementById("otp").value = otp;
+  return true;
 }
 
-// Timer Logic
-let time = 60;
-const timerDisplay = document.getElementById("time");
-const timerContainer = document.getElementById("timer-container");
-
-let t = setInterval(() => {
+// Timer
+let time = 30;
+let timer = setInterval(() => {
   time--;
-  if (timerDisplay) timerDisplay.innerText = time;
-  
+  document.getElementById("time").innerText = time;
+
   if (time <= 0) {
-    clearInterval(t);
-    timerContainer.innerHTML = "<span style='color:red;'>OTP Expired ❌</span>";
-    submitBtn.disabled = true;
+    clearInterval(timer);
+    document.querySelector(".timer").innerText = "OTP expired ❌";
   }
 }, 1000);
 </script>
 
-</body>
-</html>
+{% endblock %}

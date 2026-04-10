@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Instructor Registration - Education</title>
+
+<style>
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #f5f6f8;
+    margin: 0;
+}
+
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 40px;
+    background: #fff;
+    border-bottom: 1px solid #ddd;
+}
+
+.logo {
+    font-weight: bold;
+}
+
+.right {
+    color: #777;
+}
+
+/* Steps */
+.steps {
+    display: flex;
+    justify-content: center;
+    margin: 30px 0;
+    gap: 40px;
+}
+
+.step {
+    text-align: center;
+    font-size: 13px;
+    color: #aaa;
+}
+
+.circle {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: #ddd;
+    margin: auto;
+    line-height: 35px;
+    font-weight: bold;
+}
+
+/* Completed step */
+.done .circle {
+    background: #2ecc71;
+    color: white;
+}
+
+/* Active step */
+.active .circle {
+    background: #1f2a78;
+    color: white;
+}
+
+/* Card */
+.container {
+    width: 65%;
+    margin: auto;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+}
+
+h2 {
+    margin-bottom: 25px;
+}
+
+.section-title {
+    margin-top: 25px;
+    font-weight: bold;
+}
+
+/* Row */
+.row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background: #f9f9f9;
+}
+
+/* Buttons */
+.actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 25px;
+}
+
+.back {
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: none;
+    background: #eee;
+    cursor: pointer;
+}
+
+.next {
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: none;
+    background: #1f2a78;
+    color: white;
+    cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="navbar">
+    <div class="logo">LMS Portal</div>
+    <div class="right">Instructor Registration</div>
+</div>
+
+<!-- Steps -->
+<div class="steps">
+    <div class="step done">
+        <div class="circle">✔</div>
+        Personal
+    </div>
+    <div class="step active">
+        <div class="circle">2</div>
+        Education
+    </div>
+    <div class="step"><div class="circle">3</div>Resume</div>
+    <div class="step"><div class="circle">4</div>Review</div>
+    <div class="step"><div class="circle">5</div>Login ID</div>
+</div>
+
+<div class="container">
+    <h2>Education Details</h2>
+
+    <form method="POST" action="/education">
+
+        <!-- 10th -->
+        <div class="section-title">10th Standard</div>
+        <div class="row">
+            <input name="tenth_board" placeholder="Board / University">
+            <input name="tenth_marks" placeholder="Percentage / CGPA">
+            <input name="tenth_year" placeholder="Year of Passing">
+        </div>
+
+        <!-- 12th -->
+        <div class="section-title">12th Standard</div>
+        <div class="row">
+            <input name="twelfth_board" placeholder="Board / University">
+            <input name="twelfth_marks" placeholder="Percentage / CGPA">
+            <input name="twelfth_year" placeholder="Year of Passing">
+        </div>
+
+        <!-- Graduation -->
+        <div class="section-title">Graduation</div>
+        <div class="row">
+            <input name="grad_university" placeholder="University">
+            <input name="grad_degree" placeholder="Degree & Branch">
+            <input name="grad_marks" placeholder="Percentage / CGPA">
+        </div>
+
+        <!-- Masters -->
+        <div class="section-title">Master’s Degree</div>
+        <div class="row">
+            <input name="master_university" placeholder="University">
+            <input name="master_degree" placeholder="Degree & Branch">
+            <input name="master_marks" placeholder="Percentage / CGPA">
+        </div>
+
+        <!-- Certifications -->
+        <div class="section-title">Certifications & Expert Field</div>
+        <div class="row">
+            <input name="certifications" placeholder="Certifications">
+            <input name="skills" placeholder="Expert Field">
+        </div>
+
+        <div class="actions">
+            <button class="back" type="button" onclick="window.history.back()">Back</button>
+            <button class="next" type="submit">Continue</button>
+        </div>
+
+    </form>
+</div>
+
+</body>
+</html>

@@ -110,18 +110,23 @@ input, select {
             <input type="email" name="email" placeholder="Email Address" required>
         </div>
         <div class="input-group">
+    <i class="fas fa-envelope-open"></i>
+    <input type="email" name="parent_email" placeholder="Parent's Email Address" required autocomplete="off">
+</div>
+
+<div class="input-group">
+    <i class="fas fa-phone"></i>
+    <input type="tel" name="phone" placeholder="Phone Number" required pattern="[0-9]{10}">
+</div>
+        <div class="input-group">
             <i class="fas fa-lock"></i>
             <input type="password" name="password" id="password" placeholder="Set Password" required>
             <i class="fas fa-eye toggle-password" onclick="togglePassword()"></i>
         </div>
         <div class="input-group">
-            <i class="fas fa-user-tag"></i>
-            <select name="role" required>
-                <option value="">-- Select Role --</option>
-                <option value="student">Student</option>
-                <option value="instructor">Instructor</option>
-            </select>
-        </div>
+    <i class="fas fa-user-tag"></i>
+    <input type="text" value="Student" readonly>
+</div>
         <div class="input-group">
             <i class="fas fa-briefcase"></i>
             <select name="background" required>

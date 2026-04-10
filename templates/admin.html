@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Dashboard</title>
+
+<style>
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #f5f6f8;
+    margin: 0;
+}
+
+/* Header */
+.header {
+    background: #1f2a78;
+    color: white;
+    padding: 15px 30px;
+    font-size: 20px;
+}
+
+/* Container */
+.container {
+    width: 90%;
+    margin: 30px auto;
+}
+
+/* Table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+th {
+    background: #1f2a78;
+    color: white;
+    padding: 12px;
+}
+
+td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    text-align: center;
+}
+
+/* Buttons */
+.btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: white;
+    font-size: 13px;
+}
+
+.view { background: #3498db; }
+.download { background: #2ecc71; }
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    📊 Admin Dashboard - Instructor Applications
+</div>
+
+<div class="container">
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Education</th>
+        <th>Experience</th>
+        <th>Resume</th>
+        <th>Aadhar</th>
+    </tr>
+
+    {% for ins in instructors %}
+    <tr>
+        <td>{{ ins.name }}</td>
+        <td>{{ ins.email }}</td>
+        <td>{{ ins.phone }}</td>
+
+        <td>
+            {{ ins.education_details.graduation.degree if ins.education_details }}
+        </td>
+
+        <td>
+            {{ ins.resume_details.experience if ins.resume_details }}
+        </td>
+
+        <td>
+            {% if ins.resume_details %}
+            <a class="btn download" href="{{ url_for('uploaded_file', filename=ins.resume_details.resume_file) }}" target="_blank">
+                View Resume
+            </a>
+            {% endif %}
+        </td>
+
+        <td>
+            {% if ins.resume_details %}
+            <a class="btn view" href="{{ url_for('uploaded_file', filename=ins.resume_details.aadhar_file) }}" target="_blank">
+                View Aadhar
+            </a>
+            {% endif %}
+        </td>
+
+    </tr>
+    {% endfor %}
+
+</table>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ quiz.title }}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7fc; padding: 40px; color: #2f3542; }
+        .quiz-container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .header { border-bottom: 2px solid #eee; margin-bottom: 30px; padding-bottom: 10px; }
+        .question-block { margin-bottom: 25px; padding: 20px; border: 1px solid #edf2f7; border-radius: 10px; }
+        .question-text { font-size: 18px; font-weight: 600; margin-bottom: 15px; }
+        .option { display: block; margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .option:hover { background: #e1f0ff; }
+        input[type="radio"] { margin-right: 10px; }
+        .submit-btn { width: 100%; padding: 15px; background: #3498db; color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        .submit-btn:hover { background: #2980b9; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div class="header">
+        <h1>{{ quiz.title }}</h1>
+        <p><i class="fas fa-user-tie"></i> Teacher: {{ quiz.teacher_name }}</p>
+    </div>
+
+    <form method="POST">
+        {% for i in range(quiz.questions|length) %}
+        {% set q = quiz.questions[i] %}
+        <div class="question-block">
+            <p class="question-text">{{ i + 1 }}. {{ q.question_text }}</p>
+            
+            {% for option in q.options %}
+            <label class="option">
+                <input type="radio" name="q{{ i }}" value="{{ option }}" required>
+                {{ option }}
+            </label>
+            {% endfor %}
+        </div>
+        {% endfor %}
+
+        <button type="submit" class="submit-btn">Submit My Answers</button>
+    </form>
+</div>
+
+</body>
+</html>
